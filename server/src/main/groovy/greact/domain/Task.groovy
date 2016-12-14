@@ -1,11 +1,11 @@
-package greact
+package greact.domain
 
-import groovy.transform.Immutable
+import groovy.transform.Canonical
 
 /**
  * Created by thiago on 03/12/16.
  */
-@Immutable
+@Canonical
 class Task {
     Integer id
     String content

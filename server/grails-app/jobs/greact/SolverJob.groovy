@@ -1,9 +1,6 @@
 package greact
 
 import grails.events.Events
-import rx.Observable
-
-import java.util.concurrent.TimeUnit
 
 class SolverJob implements Events {
 //    static triggers = {
@@ -22,12 +19,10 @@ class SolverJob implements Events {
         def jobs = hazelService.map('jobs')
         def sol = hazelService.map('solutions')
         if (jobs['execute']) {
-            Observable.interval(1, TimeUnit.SECONDS)
-                    .takeWhile { jobs['execute'] }
-                    //.doAfterTerminate { println "fim da treta ${Thread.currentThread().name}!!" }
+            solver.solve().takeWhile { jobs['execute'] }
+            //.doAfterTerminate { println "fim da treta ${Thread.currentThread().name}!!" }
                     .toBlocking()
-                    .subscribe {
-                def result = solver.solve()
+                    .subscribe { result ->
                 //println "É treta ${Thread.currentThread().name}..."
                 sol['best-solution'] = result
                 notify("solution", result)

@@ -3,7 +3,7 @@ import Timeline from './Timeline.js';
 import logo from './images/logo.svg';
 import './css/App.css';
 import { SERVER_URL } from './config';
-import { Button } from 'react-bootstrap';
+import { Button, ButtonGroup } from 'react-bootstrap';
 
 const options = {
   width: '90%',
@@ -40,8 +40,10 @@ class App extends Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h2>Welcome to React</h2>
         </div>
-        <Button bsStyle="success" bsSize="small" onClick={startAction} >Start Solving</Button>
-        <Button bsStyle="danger" bsSize="small" onClick={stopAction} >Stop Solving</Button>
+        <ButtonGroup>
+            <Button bsStyle="success" bsSize="small" onClick={startAction} >Start Solving</Button>
+            <Button bsStyle="danger" bsSize="small" onClick={stopAction} >Stop Solving</Button>
+        </ButtonGroup>
         <Timeline options={options} url={url} channel={channel} event={event} />
       </div>
     );

@@ -1,9 +1,11 @@
 package greact;
 
+import rx.Observable;
+
 /**
  * Created by thiago on 03/12/16.
  */
-public interface Solver {
+public interface Solver<R> {
 
-    Result solve();
+    Observable<R> solve();
 }

@@ -1,4 +1,4 @@
-package greact;
+package greact.solution;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -40,4 +40,5 @@ public class Item implements Serializable {
     public Date getEnd() {
         return end;
     }
+
 }

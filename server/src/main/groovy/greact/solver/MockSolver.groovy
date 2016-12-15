@@ -21,10 +21,10 @@ class MockSolver implements Solver<TimeLine> {
 
     @Override
     Observable<TimeLine> solve() {
-        def instance = instanceDao.getInstanceByName("initial")
-        Observable.interval(2, TimeUnit.SECONDS)
-                .map { representation(instance) }
-                .map { rep -> instance.toTimeLine(initialDate, rep) }
+        def instance = instanceDao.observeInstanceByName("initial")
+        def timer = Observable.interval(0, 2, TimeUnit.SECONDS)
+        Observable.combineLatest(instance, timer) { i, t -> i }
+                .map { it.toTimeLine(initialDate, representation(it)) }
                 .scan { TimeLine a, TimeLine b -> [a, b].min { it.maxHours }
         }
     }

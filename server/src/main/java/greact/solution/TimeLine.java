@@ -16,17 +16,20 @@ public class TimeLine implements Serializable {
 
     private final List<Group> groups;
 
-    private int maxHours;
+    private final int maxHours;
 
-    public TimeLine(List<Item> items, List<Group> groups, int maxHours) {
-        this(LocalDateTime.now(), items, groups, maxHours);
+    private final int version;
+
+    public TimeLine(List<Item> items, List<Group> groups, int maxHours, int version) {
+        this(LocalDateTime.now(), items, groups, maxHours, version);
     }
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours) {
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int version) {
         this.initialPeriod = initialPeriod;
         this.items = Collections.unmodifiableList(items);
         this.groups = Collections.unmodifiableList(groups);
         this.maxHours = maxHours;
+        this.version = version;
     }
 
     public List<Group> getGroups() {
@@ -41,4 +44,7 @@ public class TimeLine implements Serializable {
         return maxHours;
     }
 
+    public int getVersion() {
+        return version;
+    }
 }

@@ -4,16 +4,29 @@ import greact.dao.InstanceDao
 import greact.domain.Employee
 import greact.domain.Instance
 import greact.domain.Task
+import groovy.transform.TypeChecked
 import org.springframework.core.io.ClassPathResource
+import rx.Observable
+
+import java.util.concurrent.TimeUnit as TU
 
 /**
  * Created by thiago on 09/12/16.
  */
+//@TypeChecked
 class InstanceParser implements InstanceDao {
 
     @Override
+    Observable<Instance> observeInstanceByName(String name) {
+        Observable.interval(0, 20, TU.SECONDS)
+                .map { "${name}-$it" }
+                .map { getInstanceByName(it) }.take(2)
+    }
+
+    @Override
     Instance getInstanceByName(String name) {
-        new Instance(getInstanceTasks(name), getInstanceEmployees(name))
+        def ver = name.split('-').last().toInteger()
+        new Instance(getInstanceTasks(name), getInstanceEmployees(name), ver)
     }
 
     @Override

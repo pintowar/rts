@@ -1,6 +1,7 @@
 import vis from 'vis'
 import 'vis/dist/vis.css'
 import React, { Component, PropTypes } from 'react'
+import { Row, Col, Label, Panel, Button, ButtonGroup } from 'react-bootstrap';
 import assign from 'lodash/assign'
 import Immutable from 'immutable'
 
@@ -13,7 +14,10 @@ export default class Timeline extends Component {
     super(args)
     this.state = {items: [],
             groups: [],
-            options: this.props.options};
+            options: this.props.options,
+            running: false,
+            maxHours: -1,
+            varsion: -1};
   }
 
   componentWillUnmount() {
@@ -25,7 +29,8 @@ export default class Timeline extends Component {
       let source = new EventSource(channel);
       source.addEventListener(event, function(e) {
         let val = JSON.parse(e.data)
-        //console.log(val)
+        val.running = true
+//        console.log(val)
         this.setState(val)
       }.bind(this), false)
     }
@@ -37,23 +42,26 @@ export default class Timeline extends Component {
     fetch(this.props.url)
               .then(r => r.json().then(s => this.setState(s)) )
               .catch(error => console.error('Error connecting to server: ' + error));
+    this.TimelineElement.fit()
   }
 
   componentDidUpdate() {
     this.init()
-
   }
 
   shouldComponentUpdate(nextProps, nextState) {
     const {
-      items, groups, options
+      items, groups, options, running, maxHours, version
     } = this.state
 
     const itemsChange = !Immutable.fromJS(items).equals(Immutable.fromJS(nextState.items))
     const groupsChange = !Immutable.fromJS(groups).equals(Immutable.fromJS(nextState.groups))
     const optionsChange = !Immutable.fromJS(options).equals(Immutable.fromJS(nextState.options))
+    const runningChange = running !== nextState.running
+    const maxHoursChange = maxHours !== nextState.maxHours
+    const versionChange = version !== nextState.version
 
-    let gonnaChange = itemsChange || groupsChange || optionsChange
+    let gonnaChange = itemsChange || groupsChange || optionsChange || runningChange || maxHoursChange || versionChange
 
     return gonnaChange
   }
@@ -81,6 +89,8 @@ export default class Timeline extends Component {
         timelineGroups.add(groups)
         $el.setGroups(timelineGroups)
       }
+      const height = 50 * (1 + groups.length)
+      options.height = height + 'px'
       $el.setOptions(options)
 
 //      $el.fit()
@@ -106,7 +116,41 @@ export default class Timeline extends Component {
   }
 
   render() {
-    return <div ref='container' />
+    let solverAction = (url, mode) => fetch(url).then(r => r.json().then(function(s) {
+                                            var val = this.state
+                                            val.running = mode
+                                            this.setState(val)
+                                          }.bind(this)))
+                                          .catch(function(error){
+                                            var val = this.state
+                                            val.running = !mode
+                                            this.setState(val)
+                                            console.error('Error connecting to server: ' + error)
+                                          }.bind(this));
+    let startAction = () => solverAction(this.props.start, true)
+    let stopAction = () => solverAction(this.props.stop, false)
+
+    const buttons = (
+        <Row>
+        <Col xs={12} md={8} >
+            <ButtonGroup>
+                <Button bsStyle="success" bsSize="small" onClick={startAction} >Start Solving</Button>
+                <Button bsStyle="danger" bsSize="small" onClick={stopAction} >Stop Solving</Button>
+            </ButtonGroup>
+        </Col>
+        <Col xs={6} md={4} >
+            <Label bsStyle="primary">{'Fitness: ' + this.state.maxHours}</Label>
+            <Label bsStyle="info">{'Instance: ' + this.state.version}</Label>
+            <Label bsStyle={this.state.running ? 'success' : 'danger'}>{this.state.running ? 'Running' : 'Stop'}</Label>
+        </Col>
+        </Row>
+    )
+
+    return (
+        <Panel header="Task Planner" footer={buttons}>
+            <div ref='container' />
+        </Panel>
+    )
   }
 }
 

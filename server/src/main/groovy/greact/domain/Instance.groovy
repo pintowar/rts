@@ -20,6 +20,7 @@ import java.time.temporal.ChronoUnit
 class Instance {
     List<Task> tasks
     List<Employee> employees
+    int version
 
     @Memoized
     List<Estimative> getEstimatives() {
@@ -63,6 +64,6 @@ class Instance {
         }
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
 
-        new TimeLine(initialDate, items, groups, (int) initialDate.until(maxTime, ChronoUnit.HOURS))
+        new TimeLine(initialDate, items, groups, (int) initialDate.until(maxTime, ChronoUnit.HOURS), version)
     }
 }

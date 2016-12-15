@@ -25,7 +25,7 @@ class TaskController implements RxController, Events {
 
     def index() {
         def sol = hazelService.map('solutions')
-        render //JsonOutput.toJson(sol['best-solution'] ?: [:])
+        render JsonOutput.toJson(sol['best-solution'] ?: [:])
     }
 
     def channel() {

@@ -1,4 +1,4 @@
-package greact;
+package greact.solver;
 
 import rx.Observable;
 

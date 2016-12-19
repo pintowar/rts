@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import Timeline from './Timeline.js';
 import goes from './images/logo_goes.png'
 import './css/App.css';
-import { SERVER_URL } from './config';
 import { Image, Navbar } from 'react-bootstrap';
 
 const options = {
@@ -24,10 +23,10 @@ const options = {
 class App extends Component {
 
   render() {
-    let channel = SERVER_URL + 'task/channel'
-    let url = SERVER_URL + 'task.json'
-    let startUrl = SERVER_URL + 'task/start-solver'
-    let stopUrl = SERVER_URL + 'task/stop-solver'
+    let channel = '/task/channel'
+    let url = '/task.json'
+    let startUrl = '/task/start-solver'
+    let stopUrl = '/task/stop-solver'
     let event = 'task'
 
     return (

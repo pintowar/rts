@@ -36,13 +36,17 @@ class TaskController implements RxController, Events {
         def jobs = hazelService.map('jobs')
         jobs['execute'] = true
         SolverJob.triggerNow()
-        render JsonOutput.toJson([solver: 'started'])
+        render JsonOutput.toJson(TimeLine.EMPTY)
     }
 
     def stopSolver() {
         def jobs = hazelService.map('jobs')
+        def sol = hazelService.map('solutions')
         jobs['execute'] = false
-        render JsonOutput.toJson([solver: 'stopped'])
+
+        def result = sol['best-solution']
+        sol['best-solution'] = result.changeExecutionMode()
+        render JsonOutput.toJson(sol['best-solution'])
     }
 
 }

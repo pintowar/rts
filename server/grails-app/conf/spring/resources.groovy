@@ -1,5 +1,5 @@
 import greact.dao.impl.InstanceParser
-import greact.solver.MockSolver
+import greact.solver.impl.MockSolver
 
 // Place your Spring DSL code here
 beans = {

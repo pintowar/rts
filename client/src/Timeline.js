@@ -29,7 +29,6 @@ export default class Timeline extends Component {
       let source = new EventSource(channel);
       source.addEventListener(event, function(e) {
         let val = JSON.parse(e.data)
-        val.running = true
 //        console.log(val)
         this.setState(val)
       }.bind(this), false)
@@ -38,9 +37,10 @@ export default class Timeline extends Component {
 
   componentDidMount() {
     this.init()
+    let self = this
     this.eventListener(this.props.channel, this.props.event)
     fetch(this.props.url)
-              .then(r => r.json().then(s => this.setState(s)) )
+              .then(r => r.json().then(s => self.setState(s)) )
               .catch(error => console.error('Error connecting to server: ' + error));
     this.TimelineElement.fit()
   }
@@ -111,22 +111,22 @@ export default class Timeline extends Component {
       if (groupExists) {
         $el.setGroups(timelineGroups)
       }
+      $el.fit()
     }
 
   }
 
   render() {
+    let self = this
     let solverAction = (url, mode) => fetch(url).then(r => r.json().then(function(s) {
-                                            var val = this.state
-                                            val.running = mode
-                                            this.setState(val)
-                                          }.bind(this)))
+                                            self.setState(s)
+                                          }))
                                           .catch(function(error){
-                                            var val = this.state
+                                            var val = self.state
                                             val.running = !mode
-                                            this.setState(val)
+                                            self.setState(val)
                                             console.error('Error connecting to server: ' + error)
-                                          }.bind(this));
+                                          });
     let startAction = () => solverAction(this.props.start, true)
     let stopAction = () => solverAction(this.props.stop, false)
 

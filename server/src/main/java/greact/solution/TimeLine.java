@@ -2,6 +2,7 @@ package greact.solution;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,16 +21,28 @@ public class TimeLine implements Serializable {
 
     private final int version;
 
+    private final long secondsElapsed;
+
+    private final boolean running;
+
+    public static final TimeLine EMPTY = new TimeLine(Collections.emptyList(), Collections.emptyList(), -1, 0);
+
     public TimeLine(List<Item> items, List<Group> groups, int maxHours, int version) {
-        this(LocalDateTime.now(), items, groups, maxHours, version);
+        this(LocalDateTime.now(), items, groups, maxHours, version, true);
     }
 
     public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int version) {
+        this(initialPeriod, items, groups, maxHours, version, true);
+    }
+
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int version, boolean running) {
         this.initialPeriod = initialPeriod;
         this.items = Collections.unmodifiableList(items);
         this.groups = Collections.unmodifiableList(groups);
         this.maxHours = maxHours;
         this.version = version;
+        this.running = running;
+        this.secondsElapsed = initialPeriod.until(LocalDateTime.now(), ChronoUnit.SECONDS);
     }
 
     public List<Group> getGroups() {
@@ -46,5 +59,17 @@ public class TimeLine implements Serializable {
 
     public int getVersion() {
         return version;
+    }
+
+    public long getSecondsElapsed() {
+        return secondsElapsed;
+    }
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public TimeLine changeExecutionMode() {
+        return new TimeLine(initialPeriod, items, groups, maxHours, version, !running);
     }
 }

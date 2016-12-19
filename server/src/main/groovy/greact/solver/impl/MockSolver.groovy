@@ -1,10 +1,10 @@
-package greact.solver
+package greact.solver.impl
 
 import greact.ListUtils
-import greact.Solver
 import greact.dao.InstanceDao
 import greact.domain.Instance
 import greact.solution.TimeLine
+import greact.solver.Solver
 import rx.Observable
 
 import java.time.LocalDateTime
@@ -15,18 +15,16 @@ import java.util.concurrent.TimeUnit
  */
 class MockSolver implements Solver<TimeLine> {
 
-    private LocalDateTime initialDate = LocalDateTime.now()
-
     InstanceDao instanceDao
 
     @Override
     Observable<TimeLine> solve() {
+        LocalDateTime initialDate = LocalDateTime.now()
         def instance = instanceDao.observeInstanceByName("initial")
-        def timer = Observable.interval(0, 2, TimeUnit.SECONDS)
+        def timer = Observable.interval(0, 1, TimeUnit.SECONDS)
         Observable.combineLatest(instance, timer) { i, t -> i }
                 .map { it.toTimeLine(initialDate, representation(it)) }
-                .scan { TimeLine a, TimeLine b -> [a, b].min { it.maxHours }
-        }
+                .scan { TimeLine a, TimeLine b -> [a, b].min { it.maxHours } }
     }
 
     List<Integer> representation(Instance instance) {

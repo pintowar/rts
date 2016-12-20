@@ -2,7 +2,7 @@
 grails:
     profile: react
     codegen:
-        defaultPackage: greact
+        defaultPackage: br.uece.goes.rts
     spring:
         transactionManagement:
             proxies: false

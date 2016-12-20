@@ -1,9 +1,9 @@
 package greact.domain
 
 import greact.ListUtils
-import greact.solution.Group
-import greact.solution.Item
-import greact.solution.TimeLine
+import greact.dto.Group
+import greact.dto.Item
+import greact.dto.TimeLine
 import groovy.transform.Canonical
 import groovy.transform.Memoized
 import groovy.transform.TypeChecked

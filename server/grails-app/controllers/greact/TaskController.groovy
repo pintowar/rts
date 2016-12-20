@@ -3,7 +3,7 @@ package greact
 import com.fasterxml.jackson.databind.ObjectMapper
 import grails.events.Events
 import grails.rx.web.RxController
-import greact.solution.TimeLine
+import greact.dto.TimeLine
 import groovy.json.JsonOutput
 import org.grails.plugins.rx.web.result.RxResult
 import reactor.bus.Event

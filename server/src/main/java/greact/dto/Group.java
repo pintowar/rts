@@ -1,4 +1,4 @@
-package greact.solution;
+package greact.dto;
 
 import java.io.Serializable;
 

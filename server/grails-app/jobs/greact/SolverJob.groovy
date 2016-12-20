@@ -1,7 +1,7 @@
 package greact
 
 import grails.events.Events
-import greact.solution.TimeLine
+import greact.dto.TimeLine
 import greact.solver.Solver
 import hazelgrails.HazelService
 

@@ -3,7 +3,7 @@ package greact.solver.impl
 import greact.ListUtils
 import greact.dao.InstanceDao
 import greact.domain.Instance
-import greact.solution.TimeLine
+import greact.dto.TimeLine
 import greact.solver.Solver
 import rx.Observable
 

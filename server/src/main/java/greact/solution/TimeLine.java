@@ -4,6 +4,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,6 +25,8 @@ public class TimeLine implements Serializable {
     private final long secondsElapsed;
 
     private final boolean running;
+
+    private final Date createdAt = new Date();
 
     public static final TimeLine EMPTY = new TimeLine(Collections.emptyList(), Collections.emptyList(), -1, 0);
 
@@ -67,6 +70,10 @@ public class TimeLine implements Serializable {
 
     public boolean isRunning() {
         return running;
+    }
+
+    public Date getCreatedAt() {
+        return createdAt;
     }
 
     public TimeLine changeExecutionMode() {

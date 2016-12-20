@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import Timeline from './Timeline.js';
+import Timeseries from './Timeseries.js';
 import goes from './images/logo_goes.png'
 import './css/App.css';
 import { Image, Navbar } from 'react-bootstrap';
@@ -24,10 +25,12 @@ class App extends Component {
 
   render() {
     let channel = '/task/channel'
-    let url = '/task.json'
+    let task_url = '/task.json'
+    let solutions_url = '/task/solutions.json'
     let startUrl = '/task/start-solver'
     let stopUrl = '/task/stop-solver'
     let event = 'task'
+    let source = new EventSource(channel);
 
     return (
         <div id="parent">
@@ -41,8 +44,8 @@ class App extends Component {
                   <Navbar.Text pullRight>Task Planner</Navbar.Text>
                 </Navbar.Collapse>
               </Navbar>
-              <Timeline options={options} url={url} channel={channel} event={event}
-                         start={startUrl} stop={stopUrl}/>
+              <Timeline options={options} url={task_url} source={source} event={event} start={startUrl} stop={stopUrl} />
+              <Timeseries source={source} url={solutions_url} event={event} />
           </div>
     )
   }

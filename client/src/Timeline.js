@@ -24,13 +24,10 @@ export default class Timeline extends Component {
     this.TimelineElement.destroy()
   }
 
-  eventListener(channel, event) {
-    if(channel && event) {
-      let source = new EventSource(channel);
+  eventListener(source, event) {
+    if(source && event) {
       source.addEventListener(event, function(e) {
-        let val = JSON.parse(e.data)
-//        console.log(val)
-        this.setState(val)
+        this.setState(JSON.parse(e.data))
       }.bind(this), false)
     }
   }
@@ -38,7 +35,7 @@ export default class Timeline extends Component {
   componentDidMount() {
     this.init()
     let self = this
-    this.eventListener(this.props.channel, this.props.event)
+    this.eventListener(this.props.source, this.props.event)
     fetch(this.props.url)
               .then(r => r.json().then(s => self.setState(s)) )
               .catch(error => console.error('Error connecting to server: ' + error));

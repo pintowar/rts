@@ -29,6 +29,6 @@ class MockSolver implements Solver<TimeLine> {
     }
 
     List<Integer> representation(Instance instance) {
-        ListUtils.shuffle((1..(instance.tasks.size())) + (1..<(instance.employees.size())).collect { -it })
+        ListUtils.shuffle(instance.indexes())
     }
 }

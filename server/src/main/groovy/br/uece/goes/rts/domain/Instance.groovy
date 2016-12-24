@@ -72,4 +72,14 @@ class Instance {
 
         new TimeLine(initialDate, items, groups, (int) initialDate.until(maxTime, ChronoUnit.HOURS), version)
     }
+
+    @Memoized
+    List<Integer> indexes() {
+        (1..(this.tasks.size())) + (1..<(this.employees.size())).collect { -it }
+    }
+
+    @Memoized
+    boolean isEmpty() {
+        tasks.isEmpty() && employees.isEmpty()
+    }
 }

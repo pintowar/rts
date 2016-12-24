@@ -4,9 +4,8 @@ import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
 import grails.events.Events
 import hazelgrails.HazelService
-import reactor.bus.Event
 
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.TimeUnit
 
 class SolverJob implements Events {
 //    static triggers = {
@@ -26,8 +25,8 @@ class SolverJob implements Events {
         def sol = hazelService.map('solutions')
         if (jobs['execute']) {
             sol['solutions'] = []
-            solver.solve().takeWhile { jobs['execute'] }
-            //.doAfterTerminate { println "end of Thread ${Thread.currentThread().name}!!" }
+            solver.solve()
+            .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobs['execute'] }
             .toBlocking()
             .subscribe { result ->
                 sol['best-solution'] = result

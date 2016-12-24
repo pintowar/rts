@@ -19,7 +19,8 @@ class InstanceParser implements InstanceDao {
     Observable<Instance> observeInstanceByName(String name) {
         Observable.interval(0, 20, TU.SECONDS)
                 .map { "${name}-$it" }
-                .map { getInstanceByName(it) }.take(2)
+                .map { getInstanceByName(it) }
+                .onErrorReturn { Instance.EMPTY }
     }
 
     @Override

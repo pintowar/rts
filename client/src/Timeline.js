@@ -1,12 +1,8 @@
 import vis from 'vis'
 import 'vis/dist/vis.css'
-import React, { Component, PropTypes } from 'react'
+import React, { Component } from 'react'
 import { Row, Col, Label, Panel, Button, ButtonGroup } from 'react-bootstrap';
-import assign from 'lodash/assign'
 import Immutable from 'immutable'
-
-const eventPropTypes = {}
-const eventDefaultProps = {}
 
 export default class Timeline extends Component {
 
@@ -121,7 +117,7 @@ export default class Timeline extends Component {
                                           .catch(function(error){
                                             var val = self.state
                                             val.running = !mode
-                                            self.setState(val)
+                                            //self.setState(val)
                                             console.error('Error connecting to server: ' + error)
                                           });
     let startAction = () => solverAction(this.props.start, true)
@@ -150,15 +146,3 @@ export default class Timeline extends Component {
     )
   }
 }
-
-Timeline.propTypes = assign({
-  items: PropTypes.array,
-  groups: PropTypes.array,
-  options: PropTypes.object,
-}, eventPropTypes)
-
-Timeline.defaultProps = assign({
-  items: [],
-  groups: [],
-  options: {},
-}, eventDefaultProps)

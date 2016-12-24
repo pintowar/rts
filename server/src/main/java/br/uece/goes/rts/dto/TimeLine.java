@@ -28,7 +28,8 @@ public class TimeLine implements Serializable {
 
     private final Date createdAt = new Date();
 
-    public static final TimeLine EMPTY = new TimeLine(Collections.emptyList(), Collections.emptyList(), -1, 0);
+    public static final TimeLine EMPTY = new TimeLine(LocalDateTime.now(), Collections.emptyList(),
+            Collections.emptyList(), -1, 0, false);
 
     public TimeLine(List<Item> items, List<Group> groups, int maxHours, int version) {
         this(LocalDateTime.now(), items, groups, maxHours, version, true);
@@ -78,5 +79,9 @@ public class TimeLine implements Serializable {
 
     public TimeLine changeExecutionMode() {
         return new TimeLine(initialPeriod, items, groups, maxHours, version, !running);
+    }
+
+    public TimeLine stopExecutionMode() {
+        return new TimeLine(initialPeriod, items, groups, maxHours, version, false);
     }
 }

@@ -1,9 +1,9 @@
 package br.uece.goes.rts
 
+import br.uece.goes.rts.dto.TimeLine
 import com.fasterxml.jackson.databind.ObjectMapper
 import grails.events.Events
 import grails.rx.web.RxController
-import br.uece.goes.rts.dto.TimeLine
 import groovy.json.JsonOutput
 import org.grails.plugins.rx.web.result.RxResult
 import reactor.bus.Event
@@ -21,7 +21,7 @@ class TaskController implements RxController, Events {
         on("solution") { Event<TimeLine> ev ->
             subscriber.onNext(rx.render(JsonOutput.toJson(ev.data)))
         }
-    }
+    }.onErrorReturn { rx.render(JsonOutput.toJson(TimeLine.EMPTY)) }
 
     def index() {
         def sol = hazelService.map('solutions')
@@ -50,7 +50,7 @@ class TaskController implements RxController, Events {
         jobs['execute'] = false
 
         def result = sol['best-solution']
-        sol['best-solution'] = result.changeExecutionMode()
+        sol['best-solution'] = result.stopExecutionMode()
         render JsonOutput.toJson(sol['best-solution'])
     }
 

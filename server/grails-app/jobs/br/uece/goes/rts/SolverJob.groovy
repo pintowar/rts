@@ -1,9 +1,12 @@
 package br.uece.goes.rts
 
-import grails.events.Events
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
+import grails.events.Events
 import hazelgrails.HazelService
+import reactor.bus.Event
+
+import java.util.concurrent.atomic.AtomicLong
 
 class SolverJob implements Events {
 //    static triggers = {

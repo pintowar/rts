@@ -22,9 +22,10 @@ class MockSolver implements Solver<TimeLine> {
         LocalDateTime initialDate = LocalDateTime.now()
         def instance = instanceDao.observeInstanceByName("initial")
         def timer = Observable.interval(0, 1, TimeUnit.SECONDS)
-        Observable.combineLatest(instance, timer) { i, t -> i }
-                .map { it.toTimeLine(initialDate, representation(it)) }
-                .scan { TimeLine a, TimeLine b -> [a, b].min { it.maxHours } }
+        instance.switchMap { i ->
+            timer.map { t -> i.toTimeLine(initialDate, representation(i)) }
+                 .scan { TimeLine a, TimeLine b -> [a, b].min { it.maxHours } }
+        }
     }
 
     List<Integer> representation(Instance instance) {

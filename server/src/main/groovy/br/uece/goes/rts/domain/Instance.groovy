@@ -18,6 +18,8 @@ import java.time.temporal.ChronoUnit
 @Canonical
 @TypeChecked
 class Instance {
+    public static final Instance EMPTY = new Instance([], [], -1)
+
     List<Task> tasks
     List<Employee> employees
     int version
@@ -49,20 +51,24 @@ class Instance {
     TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {
         List<Item> items = []
         LocalDateTime maxTime = initialDate
+        boolean hasEstimatives = !transformEstimatives().isEmpty()
         ListUtils.splitWhere(representation) { int it -> it < 0 }.indexed().each { k, v ->
             int employeeId = k + 1
             LocalDateTime beginning = initialDate
-            v.each { taskId ->
-                LocalDateTime end = beginning.plusHours(transformEstimatives().get([employeeId, taskId]))
+            if (hasEstimatives) {
+                v.each { taskId ->
+                    LocalDateTime end = beginning.plusHours(transformEstimatives().get([employeeId, taskId]))
 
-                maxTime = end > maxTime ? end : maxTime
-                Task t = transformTasks().get(taskId)
-                items << new Item(t.id, t.content, Date.from(beginning.atZone(ZoneId.systemDefault()).toInstant()),
-                        Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), employeeId)
-                beginning = end.plusHours(5)
+                    maxTime = end > maxTime ? end : maxTime
+                    Task t = transformTasks().get(taskId)
+                    items << new Item(t.id, t.content, Date.from(beginning.atZone(ZoneId.systemDefault()).toInstant()),
+                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), employeeId)
+                    beginning = end.plusHours(5)
+                }
             }
         }
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
+
 
         new TimeLine(initialDate, items, groups, (int) initialDate.until(maxTime, ChronoUnit.HOURS), version)
     }

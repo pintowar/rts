@@ -1,5 +1,6 @@
 package br.uece.goes.rts
 
+import br.uece.goes.rts.dao.JobDao
 import br.uece.goes.rts.dto.TimeLine
 import com.fasterxml.jackson.databind.ObjectMapper
 import grails.rx.web.RxController
@@ -8,7 +9,7 @@ import groovy.json.JsonOutput
 class TaskController implements RxController {
     static responseFormats = ['json', 'xml']
 
-    private ObjectMapper mapper = new ObjectMapper()
+    JobDao jobDao
 
     def hazelService
 
@@ -33,16 +34,16 @@ class TaskController implements RxController {
 //    }
 
     def startSolver() {
-        def jobs = hazelService.map('jobs')
-        jobs['execute'] = true
+
+        jobDao.startExecution()
         SolverJob.triggerNow()
         render JsonOutput.toJson(TimeLine.EMPTY)
     }
 
     def stopSolver() {
-        def jobs = hazelService.map('jobs')
+
         def sol = hazelService.map('solutions')
-        jobs['execute'] = false
+        jobDao.stopExecution()
 
         def result = sol['best-solution']
         sol['best-solution'] = result.stopExecutionMode()

@@ -1,5 +1,6 @@
 package br.uece.goes.rts
 
+import br.uece.goes.rts.dao.JobDao
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
 import hazelgrails.HazelService
@@ -15,6 +16,8 @@ class SolverJob {
     def concurrent = false
     def description = "Solver Job"
 
+    JobDao jobDao
+
     HazelService hazelService
 
     SimpMessagingTemplate brokerMessagingTemplate
@@ -23,12 +26,11 @@ class SolverJob {
 
     def execute() {
         // execute job
-        def jobs = hazelService.map('jobs')
         def sol = hazelService.map('solutions')
-        if (jobs['execute']) {
+        if (jobDao.isExecuting()) {
             sol['solutions'] = []
             solver.solve()
-            .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobs['execute'] }
+            .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobDao.isExecuting() }
             .toBlocking()
             .subscribe { result ->
                 sol['best-solution'] = result

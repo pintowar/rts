@@ -2,12 +2,12 @@ package br.uece.goes.rts
 
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
-import grails.events.Events
 import hazelgrails.HazelService
+import org.springframework.messaging.simp.SimpMessagingTemplate
 
 import java.util.concurrent.TimeUnit
 
-class SolverJob implements Events {
+class SolverJob {
 //    static triggers = {
 //      simple repeatInterval: 5000l // execute job once in 5 seconds
 //    }
@@ -16,6 +16,8 @@ class SolverJob implements Events {
     def description = "Solver Job"
 
     HazelService hazelService
+
+    SimpMessagingTemplate brokerMessagingTemplate
 
     Solver<TimeLine> solver
 
@@ -31,9 +33,9 @@ class SolverJob implements Events {
             .subscribe { result ->
                 sol['best-solution'] = result
                 sol['solutions'] += [x: result.createdAt, y: result.maxHours]
-                notify("solution", result)
+                brokerMessagingTemplate.convertAndSend("/topic/solution", result)
             }
-            sol['solutions'] = []
+            //sol['solutions'] = []
         }
     }
 }

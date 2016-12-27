@@ -59,6 +59,7 @@ dependencies {
     compile "org.grails.plugins:rxjava"
     compile 'org.grails.plugins:hazelgrails:1.0.2'
     compile 'org.grails.plugins:quartz:2.0.9'
+    compile 'org.grails.plugins:grails-spring-websocket:2.3.0'
     compile 'org.apache.commons:commons-math3:3.6.1'
     compile 'org.bitbucket.fwilhelm:org.jenetics:3.6.0'
     console "org.grails:grails-console"

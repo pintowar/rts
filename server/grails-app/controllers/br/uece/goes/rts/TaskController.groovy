@@ -17,11 +17,11 @@ class TaskController implements RxController, Events {
 
     def hazelService
 
-    private Observable<RxResult<Object>> stream = Observable.create { Subscriber<RxResult<Object>> subscriber ->
-        on("solution") { Event<TimeLine> ev ->
-            subscriber.onNext(rx.render(JsonOutput.toJson(ev.data)))
-        }
-    }.onErrorReturn { rx.render(JsonOutput.toJson(TimeLine.EMPTY)) }
+//    private Observable<RxResult<Object>> stream = Observable.create { Subscriber<RxResult<Object>> subscriber ->
+//        on("solution") { Event<TimeLine> ev ->
+//            subscriber.onNext(rx.render(JsonOutput.toJson(ev.data)))
+//        }
+//    }.onErrorReturn { rx.render(JsonOutput.toJson(TimeLine.EMPTY)) }
 
     def index() {
         def sol = hazelService.map('solutions')
@@ -33,9 +33,9 @@ class TaskController implements RxController, Events {
         render JsonOutput.toJson(sol['solutions'] ?: [])
     }
 
-    def channel() {
-        rx.stream("task", stream)
-    }
+//    def channel() {
+//        rx.stream("task", stream)
+//    }
 
     def startSolver() {
         def jobs = hazelService.map('jobs')

@@ -14,7 +14,7 @@ class UrlMappings {
         "500"(view: '/error')
         "404"(view: '/notFound')
 
-        get "/task/channel(.$format)?"(controller: 'task', action: "channel")
+//        get "/task/channel(.$format)?"(controller: 'task', action: "channel")
         get "/task/start-solver(.$format)?"(controller: 'task', action: "startSolver")
         get "/task/stop-solver(.$format)?"(controller: 'task', action: "stopSolver")
         get "/task/solutions(.$format)?"(controller: 'task', action: "solutions")

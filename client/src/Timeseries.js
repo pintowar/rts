@@ -5,48 +5,39 @@ import { Panel } from 'react-bootstrap';
 
 export default class Timeseries extends Component {
 
-  constructor(args) {
-    super(args)
-    this.state = { data: {} };
-  }
-
-  eventListener(source, event) {
-    if(source && event) {
-      source.addEventListener(event, function(e) {
-        let tl = JSON.parse(e.data)
-        this.setState({data: tl})
-      }.bind(this), false)
+    constructor(args) {
+        super(args)
+        this.state = { data: {} };
     }
-  }
 
-  componentDidMount() {
-      const { container } = this.refs
-      let self = this
-      this.dataset = new vis.DataSet(this.state.data);
-      let options = {};
-      fetch(this.props.url)
-      .then(r => r.json().then(function(s) {
-        self.dataset.add(s)
-      }))
-      this.graph = new vis.Graph2d(container, this.dataset, options);
-      this.eventListener(this.props.source, this.props.event)
-  }
+    changeData(data) {
+        this.setState({data: data})
+    }
 
-  init() {
+    componentDidMount() {
+        const { container } = this.refs
+        let self = this
+        this.dataset = new vis.DataSet(this.state.data);
+        let options = {};
+        fetch(this.props.url)
+        .then(r => r.json().then(function(s) {
+            self.dataset.add(s)
+        }))
+        .then( r => self.graph = new vis.Graph2d(container, self.dataset, options) )
+        .catch( c => self.graph = new vis.Graph2d(container, self.dataset, options) )
+    }
 
-  }
+    componentDidUpdate() {
+        let point = { x: this.state.data.createdAt, y: this.state.data.maxHours }
+        this.dataset.add(point)
+        this.graph.fit()
+    }
 
-  componentDidUpdate() {
-    let point = { x: this.state.data.createdAt, y: this.state.data.maxHours }
-    this.dataset.add(point)
-    this.graph.fit()
-  }
-
-  render() {
-    return (
-        <Panel header="Planner Evolution" >
-            <div ref='container' />
-        </Panel>
-    )
-  }
+    render() {
+        return (
+            <Panel header="Planner Evolution" >
+                <div ref='container' />
+            </Panel>
+        )
+    }
 }

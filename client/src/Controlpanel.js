@@ -28,6 +28,13 @@ export default class Controlpanel extends Component {
                                      });
     }
 
+    componentDidMount() {
+        let self = this
+        fetch(this.props.url)
+                .then(r => r.json().then(s => self.setState(s)) )
+                .catch(error => console.error('Error connecting to server: ' + error));
+    }
+
     startAction() {
         this.solve(this.props.start, true)
     }

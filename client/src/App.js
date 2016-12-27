@@ -57,8 +57,8 @@ class App extends Component {
                         <Navbar.Text pullRight>Task Planner</Navbar.Text>
                     </Navbar.Collapse>
                 </Navbar>
-                <Controlpanel ref="controlpanel" start={startUrl} stop={stopUrl}/>
-                <Timeline ref='timeline' options={options} url={task_url} start={startUrl} stop={stopUrl} />
+                <Controlpanel ref="controlpanel" url={task_url} start={startUrl} stop={stopUrl}/>
+                <Timeline ref='timeline' options={options} url={task_url} />
                 <Timeseries ref='timeseries' url={solutions_url} />
             </div>
         )

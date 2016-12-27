@@ -2,15 +2,10 @@ package br.uece.goes.rts
 
 import br.uece.goes.rts.dto.TimeLine
 import com.fasterxml.jackson.databind.ObjectMapper
-import grails.events.Events
 import grails.rx.web.RxController
 import groovy.json.JsonOutput
-import org.grails.plugins.rx.web.result.RxResult
-import reactor.bus.Event
-import rx.Observable
-import rx.Subscriber
 
-class TaskController implements RxController, Events {
+class TaskController implements RxController {
     static responseFormats = ['json', 'xml']
 
     private ObjectMapper mapper = new ObjectMapper()

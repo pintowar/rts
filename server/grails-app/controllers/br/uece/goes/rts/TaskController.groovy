@@ -1,8 +1,8 @@
 package br.uece.goes.rts
 
 import br.uece.goes.rts.dao.JobDao
+import br.uece.goes.rts.dao.SolutionDao
 import br.uece.goes.rts.dto.TimeLine
-import com.fasterxml.jackson.databind.ObjectMapper
 import grails.rx.web.RxController
 import groovy.json.JsonOutput
 
@@ -11,7 +11,7 @@ class TaskController implements RxController {
 
     JobDao jobDao
 
-    def hazelService
+    SolutionDao solutionDao
 
 //    private Observable<RxResult<Object>> stream = Observable.create { Subscriber<RxResult<Object>> subscriber ->
 //        on("solution") { Event<TimeLine> ev ->
@@ -20,13 +20,13 @@ class TaskController implements RxController {
 //    }.onErrorReturn { rx.render(JsonOutput.toJson(TimeLine.EMPTY)) }
 
     def index() {
-        def sol = hazelService.map('solutions')
-        render JsonOutput.toJson(sol['best-solution'] ?: [:])
+        def sol = solutionDao.bestSolution()
+        render JsonOutput.toJson(sol ?: [:])
     }
 
     def solutions() {
-        def sol = hazelService.map('solutions')
-        render JsonOutput.toJson(sol['solutions'] ?: [])
+        def hist = solutionDao.historicalSolutions()
+        render JsonOutput.toJson(hist ?: [])
     }
 
 //    def channel() {
@@ -34,20 +34,15 @@ class TaskController implements RxController {
 //    }
 
     def startSolver() {
-
         jobDao.startExecution()
         SolverJob.triggerNow()
         render JsonOutput.toJson(TimeLine.EMPTY)
     }
 
     def stopSolver() {
-
-        def sol = hazelService.map('solutions')
         jobDao.stopExecution()
-
-        def result = sol['best-solution']
-        sol['best-solution'] = result.stopExecutionMode()
-        render JsonOutput.toJson(sol['best-solution'])
+        def sol = solutionDao.stopAndGetBestSolution()
+        render JsonOutput.toJson(sol)
     }
 
 }

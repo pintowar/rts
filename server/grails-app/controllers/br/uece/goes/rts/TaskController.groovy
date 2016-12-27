@@ -1,16 +1,17 @@
 package br.uece.goes.rts
 
+import br.uece.goes.rts.dao.JobDao
+import br.uece.goes.rts.dao.SolutionDao
 import br.uece.goes.rts.dto.TimeLine
-import com.fasterxml.jackson.databind.ObjectMapper
+import grails.converters.JSON
 import grails.rx.web.RxController
-import groovy.json.JsonOutput
 
 class TaskController implements RxController {
     static responseFormats = ['json', 'xml']
 
-    private ObjectMapper mapper = new ObjectMapper()
+    JobDao jobDao
 
-    def hazelService
+    SolutionDao solutionDao
 
 //    private Observable<RxResult<Object>> stream = Observable.create { Subscriber<RxResult<Object>> subscriber ->
 //        on("solution") { Event<TimeLine> ev ->
@@ -19,13 +20,12 @@ class TaskController implements RxController {
 //    }.onErrorReturn { rx.render(JsonOutput.toJson(TimeLine.EMPTY)) }
 
     def index() {
-        def sol = hazelService.map('solutions')
-        render JsonOutput.toJson(sol['best-solution'] ?: [:])
+        def best = jobDao.isExecuting() ? solutionDao.bestSolution() : solutionDao.bestSolution().stopExecutionMode()
+        render best as JSON
     }
 
     def solutions() {
-        def sol = hazelService.map('solutions')
-        render JsonOutput.toJson(sol['solutions'] ?: [])
+        render(solutionDao.historicalSolutions().collect { [x: it.createdAt, y: it.maxHours] } as JSON)
     }
 
 //    def channel() {
@@ -33,20 +33,15 @@ class TaskController implements RxController {
 //    }
 
     def startSolver() {
-        def jobs = hazelService.map('jobs')
-        jobs['execute'] = true
+        jobDao.startExecution()
         SolverJob.triggerNow()
-        render JsonOutput.toJson(TimeLine.EMPTY)
+        render TimeLine.EMPTY as JSON
     }
 
     def stopSolver() {
-        def jobs = hazelService.map('jobs')
-        def sol = hazelService.map('solutions')
-        jobs['execute'] = false
-
-        def result = sol['best-solution']
-        sol['best-solution'] = result.stopExecutionMode()
-        render JsonOutput.toJson(sol['best-solution'])
+        jobDao.stopExecution()
+        def result = solutionDao.stopAndGetBestSolution()
+        render result as JSON
     }
 
 }

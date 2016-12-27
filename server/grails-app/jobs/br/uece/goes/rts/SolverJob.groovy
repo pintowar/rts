@@ -1,8 +1,9 @@
 package br.uece.goes.rts
 
+import br.uece.goes.rts.dao.JobDao
+import br.uece.goes.rts.dao.SolutionDao
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
-import hazelgrails.HazelService
 import org.springframework.messaging.simp.SimpMessagingTemplate
 
 import java.util.concurrent.TimeUnit
@@ -15,7 +16,9 @@ class SolverJob {
     def concurrent = false
     def description = "Solver Job"
 
-    HazelService hazelService
+    JobDao jobDao
+
+    SolutionDao solutionDao
 
     SimpMessagingTemplate brokerMessagingTemplate
 
@@ -23,19 +26,17 @@ class SolverJob {
 
     def execute() {
         // execute job
-        def jobs = hazelService.map('jobs')
-        def sol = hazelService.map('solutions')
-        if (jobs['execute']) {
-            sol['solutions'] = []
+        if (jobDao.isExecuting()) {
+            solutionDao.clearSolutions()
             solver.solve()
-            .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobs['execute'] }
+            .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobDao.isExecuting() }
+            //.doOnCompleted { println 'que coisa!!' }
             .toBlocking()
-            .subscribe { result ->
-                sol['best-solution'] = result
-                sol['solutions'] += [x: result.createdAt, y: result.maxHours]
+            .subscribe({ result ->
+                solutionDao.addSolution(result)
                 brokerMessagingTemplate.convertAndSend("/topic/solution", result)
-            }
-            //sol['solutions'] = []
+            })
+
         }
     }
 }

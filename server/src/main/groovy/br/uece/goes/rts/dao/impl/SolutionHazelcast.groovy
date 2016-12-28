@@ -28,7 +28,7 @@ class SolutionHazelcast implements SolutionDao {
     @Override
     void addSolution(TimeLine timeLine) {
         solutions.put('best-solution', timeLine)
-        solutions['solutions'] += [x: timeLine.createdAt, y: timeLine.maxHours]
+        solutions['solutions'] += timeLine
     }
 
     @Override

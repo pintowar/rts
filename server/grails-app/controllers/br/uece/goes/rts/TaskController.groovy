@@ -25,7 +25,7 @@ class TaskController implements RxController {
     }
 
     def solutions() {
-        def hist = solutionDao.historicalSolutions()
+        def hist = solutionDao.historicalSolutions().collect { [x: it.createdAt, y: it.maxHours] }
         render JsonOutput.toJson(hist ?: [])
     }
 

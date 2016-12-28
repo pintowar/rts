@@ -1,5 +1,6 @@
 package br.uece.goes.rts.dao.impl
 
+import br.uece.goes.rts.dao.JobDao
 import br.uece.goes.rts.dao.SolutionDao
 import br.uece.goes.rts.dto.TimeLine
 
@@ -14,6 +15,8 @@ class SolutionStore implements SolutionDao {
 
     private List<TimeLine> history = new Vector<>()
 
+    JobDao jobDao
+
     @Override
     void clearSolutions() {
         history.clear()
@@ -27,7 +30,7 @@ class SolutionStore implements SolutionDao {
 
     @Override
     TimeLine bestSolution() {
-        bestTimeLine.get()
+        jobDao.isExecuting() ? bestTimeLine.get() : bestTimeLine.get().stopExecutionMode()
     }
 
     @Override

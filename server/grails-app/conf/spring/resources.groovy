@@ -10,7 +10,9 @@ beans = {
 
     jobDao(JobExecuter)
 
-    solutionDao(SolutionStore)
+    solutionDao(SolutionStore) {
+        jobDao = jobDao
+    }
 
     solver(GASolver) {
         instanceDao = instanceDao

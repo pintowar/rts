@@ -26,16 +26,19 @@ class SolverJob {
 
     def execute() {
         // execute job
+        def topic = "/topic/solution"
         if (jobDao.isExecuting()) {
             solutionDao.clearSolutions()
             solver.solve()
-                    .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobDao.isExecuting() }
-                    .toBlocking()
-                    .subscribe { result ->
+            .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobDao.isExecuting() }
+            .toBlocking()
+            .subscribe({ result ->
                 solutionDao.addSolution(result)
-                brokerMessagingTemplate.convertAndSend("/topic/solution", result)
-            }
-            //sol['solutions'] = []
+                brokerMessagingTemplate.convertAndSend(topic, result)
+            }, { e -> jobDao.stopExecution() }, {
+                jobDao.stopExecution()
+                brokerMessagingTemplate.convertAndSend(topic, solutionDao.bestSolution())
+            })
         }
     }
 }

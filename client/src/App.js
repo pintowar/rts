@@ -30,13 +30,17 @@ class App extends Component {
         let socket = new SockJS('/stomp')
         let client = Stomp.over(socket)
         client.debug = null
-        let components = [this.refs.timeline, this.refs.timeseries, this.refs.controlpanel]
-
+        let self = this
         client.connect({}, function() {
             client.subscribe("/topic/solution", function(message) {
-                components.forEach(it => it.changeData(JSON.parse(message.body)))
+                self.changeData(JSON.parse(message.body))
             });
         });
+    }
+
+    changeData(data) {
+        let components = [this.refs.timeline, this.refs.timeseries, this.refs.controlpanel]
+        components.forEach(it => it.changeData(data))
     }
 
     render() {

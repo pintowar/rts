@@ -28,7 +28,7 @@ import java.util.stream.Stream
 class DynGASolver implements Solver<TimeLine> {
 
     InstanceDao instanceDao
-    final int POPULATION_SIZE = 100
+    final int POPULATION_SIZE = 500
     final double CROSSOVER_RATE = 0.8
     final double MUTATION_RATE = 0.05
     final double SURVIVOR_RATE = 0.1
@@ -95,11 +95,11 @@ class DynGASolver implements Solver<TimeLine> {
 
             if (!instance.isEmpty()) {
                 Comparator<Phenotype<EnumGene<Integer>, Double>> sort = { a, b -> a.fitness.compareTo(b.fitness) }
-                Population<EnumGene<Integer>, Double> list = pop.stream().sorted(sort)
-                                                                .map { adjustSolution(instance, period, it) }
-                                                                .limit(NUM_SURVIVOR).collect(Population.toPopulation())
+                List<Genotype<EnumGene<Integer>>> list = pop.stream().sorted(sort)
+                                                            .map { adjustSolution(instance, it.genotype) }
+                                                            .limit(NUM_SURVIVOR).collect(Collectors.toList())
 
-                engine.stream(list, 1).limit(pred).forEach { result ->
+                engine.stream(list).limit(pred).forEach { result ->
                     List<Integer> indexes = instance.indexes()
                     List<Integer> sol = result.bestPhenotype.genotype.chromosome.stream().map { indexes[it.allele] }
                                               .collect(Collectors.toList())
@@ -111,28 +111,17 @@ class DynGASolver implements Solver<TimeLine> {
         }.subscribeOn(Schedulers.newThread())
     }
 
-    Phenotype<EnumGene<Integer>, Double> adjustSolution(Instance instance, LocalDateTime period,
-                                                        Phenotype<EnumGene<Integer>, Double> phenotype) {
-        List<Integer> indexes = instance.indexes()
+    Genotype<EnumGene<Integer>> adjustSolution(Instance instance, Genotype<EnumGene<Integer>> genotype) {
         int instSize = instance.indexes().size()
-        int chromosomeSize = phenotype.genotype.chromosome.length()
-        if (instSize == chromosomeSize) phenotype
+        int chromosomeSize = genotype.chromosome.length()
+        if (instSize == chromosomeSize) genotype
         else {
-            Stream<Integer> rep = phenotype.genotype.chromosome.stream().map { it.allele }
-            if (instSize < chromosomeSize) {
-                Genotype<EnumGene<Integer>> gen = Genotype.of([PermutationChromosome
-                                                                       .of(rep.filter { it < instSize }
-                                                                           .collect(ISeq.toISeq()))])
-                def p = Phenotype.of(gen, 1, { g ->
-                    instance.toTimeLine(period, g.chromosome.collect { indexes[it.allele] }).maxHours
-                })
-                p
-            } else {
-                phenotype
-            }
+            Stream<Integer> rep = genotype.chromosome.stream().map { it.allele }
+            Stream<Integer> nrep = instSize < chromosomeSize ?
+                    rep.filter { it < instSize } :
+                    Stream.concat(rep, (chromosomeSize..<instSize).stream())
+
+            Genotype.of([PermutationChromosome.of(nrep.collect(ISeq.toISeq()))])
         }
-//        rep.chromosome.
-//                def list = []
-//        IntegerChromosome.of(*list.collect { IntegerGene.of(it, 1, 10) })
     }
 }

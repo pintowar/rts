@@ -49,7 +49,7 @@ class GASolver implements Solver<TimeLine> {
         }
         Engine.builder(func, codecs.ofPermutation(size))
                 .optimize(Optimize.MINIMUM)
-                .maximalPhenotypeAge(11)
+                .maximalPhenotypeAge(10)
                 .populationSize(100)
                 .alterers(
                 new PartiallyMatchedCrossover<>(0.8),

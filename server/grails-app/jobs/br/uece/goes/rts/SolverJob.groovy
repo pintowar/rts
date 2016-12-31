@@ -35,7 +35,7 @@ class SolverJob {
             .subscribe({ result ->
                 solutionDao.addSolution(result)
                 brokerMessagingTemplate.convertAndSend(topic, result)
-            }, { e -> jobDao.stopExecution() }, {
+            }, { e -> println "Erro: ${e.message}"; e.printStackTrace(System.err); jobDao.stopExecution() }, {
                 jobDao.stopExecution()
                 brokerMessagingTemplate.convertAndSend(topic, solutionDao.bestSolution())
             })

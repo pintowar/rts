@@ -2,7 +2,7 @@ import br.uece.goes.rts.WebSocketConfig
 import br.uece.goes.rts.dao.impl.InstanceParser
 import br.uece.goes.rts.dao.impl.JobExecuter
 import br.uece.goes.rts.dao.impl.SolutionStore
-import br.uece.goes.rts.solver.impl.GASolver
+import br.uece.goes.rts.solver.impl.DynGASolver
 
 // Place your Spring DSL code here
 beans = {
@@ -14,7 +14,7 @@ beans = {
         jobDao = jobDao
     }
 
-    solver(GASolver) {
+    solver(DynGASolver) {
         instanceDao = instanceDao
     }
 

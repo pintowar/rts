@@ -19,4 +19,11 @@ class ListUtils {
                 .collate(2, 1, false)
                 .collect { list[(it[0] + 1)..<it[1]] }
     }
+
+    static <T> List<T> intercale(List<T> a, List<T> b) {
+        assert a.size() > b.size()
+        int miniSize = (int) Math.ceil(a.size() / b.size())
+        List<List<T>> aux = a.collate(miniSize, miniSize)
+        b.indexed().collectMany{ k, v -> [v] + (aux[k] ?: [])} as List<T>
+    }
 }

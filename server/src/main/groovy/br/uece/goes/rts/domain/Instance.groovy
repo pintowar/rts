@@ -3,6 +3,7 @@ package br.uece.goes.rts.domain
 import br.uece.goes.rts.ListUtils
 import br.uece.goes.rts.dto.Group
 import br.uece.goes.rts.dto.Item
+import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import groovy.transform.Canonical
 import groovy.transform.Memoized
@@ -48,7 +49,7 @@ class Instance {
         tasks.collectEntries { t -> [t.id, t] }
     }
 
-    TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {
+    TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation, Stats stats) {
         List<Item> items = []
         LocalDateTime maxTime = initialDate
         boolean hasEstimatives = !transformEstimatives().isEmpty()
@@ -68,9 +69,13 @@ class Instance {
             }
         }
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
+        int maxHours = (int) initialDate.until(maxTime, ChronoUnit.HOURS)
 
+        new TimeLine(initialDate, items, groups, maxHours, version, stats, true)
+    }
 
-        new TimeLine(initialDate, items, groups, (int) initialDate.until(maxTime, ChronoUnit.HOURS), version)
+    TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {
+        toTimeLine(initialDate, representation, new Stats())
     }
 
     @Memoized

@@ -2,8 +2,10 @@ package br.uece.goes.rts.solver.impl
 
 import br.uece.goes.rts.dao.InstanceDao
 import br.uece.goes.rts.domain.Instance
+import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
 import org.jenetics.engine.Engine
 import org.jenetics.engine.EvolutionResult
@@ -97,11 +99,10 @@ class DynGASolver implements Solver<TimeLine> {
                     List<Integer> sol = result.bestPhenotype.genotype.chromosome.stream().map { indexes[it.allele] }
                                               .collect(Collectors.toList())
 
-//                    def sols = result.population.collect { (it.genotype.chromosome*.allele) as int[] } as Set
-//                    print "num sols: ${sols.size()}, stats: "
-//                    def stats = new DescriptiveStatistics((result.population*.fitness) as double[])
-//                    println([stats.max, stats.min, stats.mean, stats.standardDeviation].join(', '))
-                    TimeLine tl = instance.toTimeLine(period, sol)
+                    def stats = new DescriptiveStatistics((result.population*.fitness) as double[])
+                    TimeLine tl = instance.toTimeLine(period, sol,
+                            new Stats(stats.min, stats.max, stats.mean, stats.getPercentile(50),
+                                    stats.getPercentile(25), stats.getPercentile(75), stats.standardDeviation))
                     sub.onNext(new Tuple2(tl, result.population))
                 }
             }

@@ -2,14 +2,12 @@ package br.uece.goes.rts.solver.impl
 
 import br.uece.goes.rts.dao.InstanceDao
 import br.uece.goes.rts.domain.Instance
-import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
-import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
+import org.jenetics.engine.Codec
 import org.jenetics.engine.Engine
 import org.jenetics.engine.EvolutionResult
-import org.jenetics.engine.codecs
 import org.jenetics.util.ISeq
 import rx.Observable
 import rx.Subscriber
@@ -45,34 +43,42 @@ class DynGASolver implements Solver<TimeLine> {
         instance.switchMap {
             solving(initialDate, it, initialPop.get())
                     .doOnNext { el -> initialPop.set(el.second) }
-        }.map { it.first }
+        }.map { it.first }//.scan { a, b -> b.maxHours < a.maxHours ? b : a }
     }
 
     Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> solving(LocalDateTime period, Instance instance,
                                                                                 Population<EnumGene<Integer>, Double> pop) {
-        def engine = createEngine(period, instance)
-        gaSolver(period, instance, engine, pop)
+        Codec<TimeLine, EnumGene<Integer>> codec = createCodec(period, instance)
+        int size = instance.indexes().size()
+        def engine = createEngine(codec, size)
+        gaSolver(codec, instance, engine, pop)
     }
 
-    Engine<EnumGene<Integer>, Double> createEngine(LocalDateTime period, Instance instance) {
-        List<Integer> indexes = instance.indexes()
+    Codec<TimeLine, EnumGene<Integer>> createCodec(LocalDateTime period, Instance instance) {
+        def indexes = instance.indexes()
         int size = indexes.size()
-        Function<int[], Double> func = { int[] val ->
-            List<Integer> rep = Arrays.asList(Arrays.stream(val).map { it -> indexes[it] }.toArray())
-            instance.toTimeLine(period, rep).maxHours
+        Codec.of(Genotype.of([PermutationChromosome.ofInteger(size)])) { gt ->
+            instance.toTimeLine(period, gt.chromosome.collect { indexes[it.allele] })
         }
-        Engine.builder(func, codecs.ofPermutation(size))
-              .optimize(Optimize.MINIMUM)
+    }
+
+
+    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, int size) {
+        Function<TimeLine, Double> func = { TimeLine val -> val.maxHours }
+
+        Engine.builder(func, codec)
+              .minimizing()
               .maximalPhenotypeAge(10)
-              .genotypeValidator { (it.chromosome*.allele).unique(false).size() == size }
+              .offspringSelector(new RouletteWheelSelector<>())
+              .offspringFraction(0.8)
               .populationSize(POPULATION_SIZE)
               .alterers(
-                new PartiallyMatchedCrossover<>(CROSSOVER_RATE),
-                new SwapMutator<>(MUTATION_RATE))
+                new SwapMutator<>(MUTATION_RATE),
+                new PartiallyMatchedCrossover<>(CROSSOVER_RATE))
               .build()
     }
 
-    Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> gaSolver(LocalDateTime period,
+    Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> gaSolver(Codec<TimeLine, EnumGene<Integer>> codec,
                                                                                  Instance instance,
                                                                                  Engine<EnumGene<Integer>, Double> engine,
                                                                                  Population<EnumGene<Integer>, Double> pop) {
@@ -92,17 +98,13 @@ class DynGASolver implements Solver<TimeLine> {
             })
 
             if (!instance.isEmpty()) {
-                List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance)
+                List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance.indexes().size())
 
-                engine.stream(list).limit(pred).forEach { result ->
-                    List<Integer> indexes = instance.indexes()
-                    List<Integer> sol = result.bestPhenotype.genotype.chromosome.stream().map { indexes[it.allele] }
-                                              .collect(Collectors.toList())
-
-                    def stats = new DescriptiveStatistics((result.population*.fitness) as double[])
-                    TimeLine tl = instance.toTimeLine(period, sol,
-                            new Stats(stats.min, stats.max, stats.mean, stats.getPercentile(50),
-                                    stats.getPercentile(25), stats.getPercentile(75), stats.standardDeviation))
+                engine.stream(list).limit(pred).parallel().forEach { result ->
+                    TimeLine tl = codec.decode(result.bestPhenotype.genotype)
+//                    def aux = new DescriptiveStatistics((result.population*.fitness) as double[])
+//                    def stats = new Stats(aux.min, aux.max, aux.mean, aux.getPercentile(50),
+//                            aux.getPercentile(25), aux.getPercentile(75), aux.standardDeviation)
                     sub.onNext(new Tuple2(tl, result.population))
                 }
             }
@@ -110,15 +112,14 @@ class DynGASolver implements Solver<TimeLine> {
         }.subscribeOn(Schedulers.newThread())
     }
 
-    List<Genotype<EnumGene<Integer>>> newGenotypeList(Population<EnumGene<Integer>, Double> pop, Instance instance) {
+    List<Genotype<EnumGene<Integer>>> newGenotypeList(Population<EnumGene<Integer>, Double> pop, int instSize) {
         Comparator<Phenotype<EnumGene<Integer>, Double>> sort = { a, b -> a.fitness.compareTo(b.fitness) }
         pop.stream().sorted(sort)
-           .map { adjustSolution(instance, it.genotype) }
+           .map { adjustSolution(instSize, it.genotype) }
            .limit(NUM_SURVIVOR).collect(Collectors.toList())
     }
 
-    Genotype<EnumGene<Integer>> adjustSolution(Instance instance, Genotype<EnumGene<Integer>> genotype) {
-        int instSize = instance.indexes().size()
+    Genotype<EnumGene<Integer>> adjustSolution(int instSize, Genotype<EnumGene<Integer>> genotype) {
         int chromosomeSize = genotype.chromosome.length()
         if (instSize == chromosomeSize) genotype
         else {
@@ -126,10 +127,9 @@ class DynGASolver implements Solver<TimeLine> {
             Stream<Integer> nrep = instSize < chromosomeSize ?
                     rep.filter { it < instSize } :
                     Stream.concat(rep, (chromosomeSize..<instSize).stream())
-            ISeq<Integer> seq = nrep.collect(ISeq.toISeq())
-            ISeq<EnumGene<Integer>> nseq = (0..<seq.size()).stream().map { int it -> EnumGene.<Integer> of(it, seq) }
+            ISeq<Integer> seq = ISeq.of(0..<instSize)
+            ISeq<EnumGene<Integer>> nseq = nrep.map { EnumGene.<Integer> of(it, seq) }
                                                            .collect(ISeq.toISeq())
-
             Genotype.of([new PermutationChromosome<>(nseq)])
         }
     }

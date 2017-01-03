@@ -39,19 +39,20 @@ export default class Timeline extends Component {
 
     shouldComponentUpdate(nextProps, nextState) {
         const {
-            items, groups, options, running, maxHours, version
+//            items, groups, options, running, maxHours, version
+            running, maxHours, version
         } = this.state
 
-        const itemsChange = !Immutable.fromJS(items).equals(Immutable.fromJS(nextState.items))
-        const groupsChange = !Immutable.fromJS(groups).equals(Immutable.fromJS(nextState.groups))
-        const optionsChange = !Immutable.fromJS(options).equals(Immutable.fromJS(nextState.options))
+//        const itemsChange = !Immutable.fromJS(items).equals(Immutable.fromJS(nextState.items))
+//        const groupsChange = !Immutable.fromJS(groups).equals(Immutable.fromJS(nextState.groups))
+//        const optionsChange = !Immutable.fromJS(options).equals(Immutable.fromJS(nextState.options))
         const runningChange = running !== nextState.running
         const maxHoursChange = maxHours !== nextState.maxHours
         const versionChange = version !== nextState.version
 
-        let gonnaChange = itemsChange || groupsChange || optionsChange || runningChange || maxHoursChange || versionChange
+        //let gonnaChange = itemsChange || groupsChange || optionsChange || runningChange || maxHoursChange || versionChange
 
-        return gonnaChange
+        return runningChange || maxHoursChange || versionChange
     }
 
     init() {

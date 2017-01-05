@@ -25,7 +25,7 @@ class Main {
 
     void batchSolver() {
         def solver = createSolver()
-        def format = '%002d'
+        def format = '%03d'
         (1..100).forEach { int exec ->
             solver.solve()
                   .throttleFirst(1, TimeUnit.SECONDS)

@@ -1,0 +1,23 @@
+plugins {
+    id 'groovy'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "1.2.4"
+    //id "com.github.tkruse.groovysh" version "1.0.8"
+    //id 'ru.vyarus.quality' version '1.2.0'
+}
+
+version "0.1"
+group "br.uece.goes.rts"
+
+mainClassName = "br.uece.goes.rts.app.Main"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy:2.4.7'
+    compile 'io.reactivex:rxjava:1.2.1'
+    compile 'org.apache.commons:commons-math3:3.6.1'
+    compile 'io.jenetics:jenetics:3.7.0'
+}

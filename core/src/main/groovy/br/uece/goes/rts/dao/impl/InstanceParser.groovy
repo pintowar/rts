@@ -4,7 +4,6 @@ import br.uece.goes.rts.dao.InstanceDao
 import br.uece.goes.rts.domain.Employee
 import br.uece.goes.rts.domain.Instance
 import br.uece.goes.rts.domain.Task
-import org.springframework.core.io.ClassPathResource
 import rx.Observable
 
 import java.util.concurrent.TimeUnit as TU
@@ -18,9 +17,9 @@ class InstanceParser implements InstanceDao {
     @Override
     Observable<Instance> observeInstanceByName(String name) {
         Observable.interval(0, 20, TU.SECONDS)
-                .map { "${name}-$it" }
-                .map { getInstanceByName(it) }
-                .onErrorReturn { Instance.EMPTY }
+                  .map { "${name}-$it" }
+                  .map { getInstanceByName(it) }
+                  .onErrorReturn { Instance.EMPTY }
     }
 
     @Override
@@ -46,7 +45,8 @@ class InstanceParser implements InstanceDao {
     }
 
     private List<Map<String, String>> csvToMap(String file) {
-        List content = new ClassPathResource(file).inputStream.text.split('\n')*.split(',')
+        List content = this.class.classLoader.getResourceAsStream(file).text.split('\n')*.split(',')
+//        List content = new ClassPathResource(file).inputStream.text.split('\n')*.split(',')
         List head = content.first()
         content.tail().collect { [head, it].transpose().collectEntries() }
     }

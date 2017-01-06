@@ -4,7 +4,7 @@ import Timeseries from './Timeseries.js';
 import Controlpanel from './Controlpanel.js';
 import goes from './images/logo_goes.png'
 import './css/App.css';
-import { Image, Navbar } from 'react-bootstrap';
+import { Image, Navbar, Grid, Row, Col } from 'react-bootstrap';
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
 
@@ -62,9 +62,15 @@ class App extends Component {
                         <Navbar.Text pullRight>Task Planner</Navbar.Text>
                     </Navbar.Collapse>
                 </Navbar>
-                <Controlpanel ref="controlpanel" url={task_url} start={startUrl} stop={stopUrl}/>
-                <Timeline ref='timeline' options={options} url={task_url} />
-                <Timeseries ref='timeseries' url={solutions_url} />
+                <Grid fluid={true}>
+                    <Row>
+                        <Col lgOffset={1} lg={10} >
+                            <Controlpanel ref="controlpanel" url={task_url} start={startUrl} stop={stopUrl}/>
+                            <Timeline ref='timeline' options={options} url={task_url} />
+                            <Timeseries ref='timeseries' url={solutions_url} />
+                        </Col>
+                    </Row>
+                </Grid>
             </div>
         )
     }

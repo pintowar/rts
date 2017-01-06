@@ -79,7 +79,7 @@ export default class Timeline extends Component {
                 timelineGroups.add(groups)
                 $el.setGroups(timelineGroups)
             }
-            const height = 40 * (1 + groups.length)
+            const height = 60 + 40 * (groups.length)
             options.height = height + 'px'
             $el.setOptions(options)
 

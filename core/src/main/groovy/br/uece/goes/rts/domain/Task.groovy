@@ -17,6 +17,11 @@ class Task {
     List<Integer> skills
 
     @Memoized
+    String getContent() {
+        preced < 0 ? content : "${content} (Task ${preced})"
+    }
+
+    @Memoized
     Integer getPriority() {
         switch (criticity) {
             case 'minor': return 2

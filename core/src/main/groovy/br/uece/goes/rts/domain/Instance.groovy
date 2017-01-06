@@ -82,7 +82,7 @@ class Instance {
                     priorityPunishment += (priorityCounter < t.priority ? t.priority - priorityCounter : 0)
                     priorityCounter = t.priority
                     itemsMap[t.id] = items.last()
-                    beginning = end.plusHours(5)
+                    beginning = end.plusMinutes(20)
                 }
             }
         }

@@ -21,6 +21,7 @@ const options = {
         minorLabels: { minute: 'h:mma', hour: 'ha' }
     },
     orientation: { axis: 'top' },
+    margin: {item: 1}
     // item: { axis: 'top' }
 }
 

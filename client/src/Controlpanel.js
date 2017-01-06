@@ -9,7 +9,10 @@ export default class Controlpanel extends Component {
                 groups: [],
                 options: this.props.options,
                 running: false,
+                fitness: -1,
                 maxHours: -1,
+                priorityPunishment: -1,
+                precedsPunishment: -1,
                 version: -1}
     }
 
@@ -56,8 +59,11 @@ export default class Controlpanel extends Component {
                         </ButtonGroup>
                     </Col>
                     <Col xs={6} md={4} >
-                        <Label bsStyle="primary">{'Fitness: ' + this.state.maxHours}</Label>
+                        <Label bsStyle="success">{'Fitness: ' + this.state.fitness}</Label>
+                        <Label bsStyle="primary">{'Max Hours: ' + this.state.maxHours}</Label>
                         <Label bsStyle="info">{'Instance: ' + this.state.version}</Label>
+                        <Label bsStyle="warning">{'Priority Punish: ' + this.state.priorityPunishment}</Label>
+                        <Label bsStyle="default">{'Preceds Punish: ' + this.state.precedsPunishment}</Label>
                         <Label bsStyle={running ? 'success' : 'danger'}>{running ? 'Running' : 'Stop'}</Label>
                     </Col>
                 </Row>

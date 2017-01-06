@@ -1,0 +1,14 @@
+.vis-item.green {
+  background-color: green;
+  //border-color: green;
+}
+
+.vis-item.red {
+  background-color: red;
+  //border-color: red;
+}
+
+.vis-item.yellow {
+  background-color: yellow;
+  //border-color: yellow;
+}

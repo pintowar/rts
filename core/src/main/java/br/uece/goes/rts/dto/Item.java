@@ -11,13 +11,15 @@ public class Item implements Serializable {
     private final Date start;
     private final Date end;
     private final String content;
+    private final String className;
     private final Integer group;
 
-    public Item(Integer id, String content, Date start, Date end, Integer group) {
+    public Item(Integer id, String content, Date start, Date end, String className, Integer group) {
         this.id = id;
         this.content = content;
         this.start = start;
         this.end = end;
+        this.className = className;
         this.group = group;
     }
 
@@ -39,6 +41,10 @@ public class Item implements Serializable {
 
     public Date getEnd() {
         return end;
+    }
+
+    public String getClassName() {
+        return className;
     }
 
 }

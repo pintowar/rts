@@ -24,6 +24,18 @@ class Instance {
     List<Task> tasks
     List<Employee> employees
     int version
+    private final Map<Integer, Integer> preceds
+
+    Instance(List<Task> tasks, List<Employee> employees, int version) {
+        this.tasks = tasks
+        this.employees = employees
+        this.version = version
+
+        this.preceds = Collections.unmodifiableMap(tasks.findAll { it.preced > 0 }.collectEntries {
+            [it.id, it.preced]
+        })
+
+    }
 
     @Memoized
     List<Estimative> getEstimatives() {
@@ -53,9 +65,12 @@ class Instance {
         List<Item> items = []
         LocalDateTime maxTime = initialDate
         boolean hasEstimatives = !transformEstimatives().isEmpty()
+        int priorityPunishment = 0
+        Map<Integer, Item> itemsMap = [:]
         ListUtils.splitWhere(representation) { int it -> it < 0 }.indexed().each { k, v ->
             int employeeId = k + 1
             LocalDateTime beginning = initialDate
+            int priorityCounter = 4
             if (hasEstimatives) {
                 v.each { taskId ->
                     LocalDateTime end = beginning.plusHours(transformEstimatives().get([employeeId, taskId]))
@@ -63,15 +78,19 @@ class Instance {
                     maxTime = end > maxTime ? end : maxTime
                     Task t = transformTasks().get(taskId)
                     items << new Item(t.id, t.content, Date.from(beginning.atZone(ZoneId.systemDefault()).toInstant()),
-                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), employeeId)
+                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId)
+                    priorityPunishment += (priorityCounter < t.priority ? t.priority - priorityCounter : 0)
+                    priorityCounter = t.priority
+                    itemsMap[t.id] = items.last()
                     beginning = end.plusHours(5)
                 }
             }
         }
+        int precedsPunishment = preceds.count { k, v -> itemsMap[k].end >= itemsMap[v].start }.intValue()
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
         int maxHours = (int) initialDate.until(maxTime, ChronoUnit.HOURS)
 
-        new TimeLine(initialDate, items, groups, maxHours, version, stats, true)
+        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedsPunishment, version, stats, true)
     }
 
     TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {

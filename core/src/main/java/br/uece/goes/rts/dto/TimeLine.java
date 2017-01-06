@@ -20,6 +20,10 @@ public class TimeLine implements Serializable {
 
     private final int maxHours;
 
+    private final int priorityPunishment;
+
+    private final int precedsPunishment;
+
     private final int version;
 
     private final long secondsElapsed;
@@ -31,29 +35,31 @@ public class TimeLine implements Serializable {
     private final Stats stats;
 
     public static final TimeLine EMPTY = new TimeLine(LocalDateTime.now(), Collections.emptyList(),
-            Collections.emptyList(), -1, 0, false);
+            Collections.emptyList(), -1, -1, -1, 0, false);
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int version, Stats stats, boolean running) {
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version, Stats stats, boolean running) {
         this.initialPeriod = initialPeriod;
         this.items = Collections.unmodifiableList(items);
         this.groups = Collections.unmodifiableList(groups);
         this.maxHours = maxHours;
+        this.priorityPunishment = priorityPunishment;
+        this.precedsPunishment = precedsPunishment;
         this.version = version;
         this.stats = stats;
         this.running = running;
         this.secondsElapsed = initialPeriod.until(LocalDateTime.now(), ChronoUnit.SECONDS);
     }
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int version, boolean running) {
-        this(initialPeriod, items, groups, maxHours, version, new Stats(), running);
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version, boolean running) {
+        this(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, new Stats(), running);
     }
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int version) {
-        this(initialPeriod, items, groups, maxHours, version, true);
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version) {
+        this(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, true);
     }
 
-    public TimeLine(List<Item> items, List<Group> groups, int maxHours, int version) {
-        this(LocalDateTime.now(), items, groups, maxHours, version, true);
+    public TimeLine(List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version) {
+        this(LocalDateTime.now(), items, groups, maxHours, priorityPunishment, precedsPunishment, version, true);
     }
 
     public List<Group> getGroups() {
@@ -66,6 +72,18 @@ public class TimeLine implements Serializable {
 
     public int getMaxHours() {
         return maxHours;
+    }
+
+    public int getPriorityPunishment() {
+        return priorityPunishment;
+    }
+
+    public int getPrecedsPunishment() {
+        return precedsPunishment;
+    }
+
+    public double getFitness() {
+        return maxHours + 30 * priorityPunishment + 100 * precedsPunishment;
     }
 
     public int getVersion() {
@@ -89,10 +107,14 @@ public class TimeLine implements Serializable {
     }
 
     public TimeLine changeExecutionMode() {
-        return new TimeLine(initialPeriod, items, groups, maxHours, version, !running);
+        return new TimeLine(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, !running);
     }
 
     public TimeLine stopExecutionMode() {
-        return new TimeLine(initialPeriod, items, groups, maxHours, version, false);
+        return new TimeLine(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, false);
+    }
+
+    public TimeLine addStats(Stats stats) {
+        return new TimeLine(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, stats, running);
     }
 }

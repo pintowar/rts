@@ -2,8 +2,10 @@ package br.uece.goes.rts.solver.impl
 
 import br.uece.goes.rts.dao.InstanceDao
 import br.uece.goes.rts.domain.Instance
+import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
+import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
 import org.jenetics.engine.Codec
 import org.jenetics.engine.Engine
@@ -31,7 +33,7 @@ class DynGASolver implements Solver<TimeLine> {
     final int POPULATION_SIZE = 500
     final double CROSSOVER_RATE = 0.8
     final double MUTATION_RATE = 0.05
-    final double SURVIVOR_RATE = 0.1
+    final double SURVIVOR_RATE = 0.4
     final int NUM_SURVIVOR = SURVIVOR_RATE * POPULATION_SIZE
 
 
@@ -64,11 +66,11 @@ class DynGASolver implements Solver<TimeLine> {
 
 
     Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, int size) {
-        Function<TimeLine, Double> func = { TimeLine val -> val.maxHours }
+        Function<TimeLine, Double> func = { TimeLine val -> val.fitness }
 
         Engine.builder(func, codec)
               .minimizing()
-              .maximalPhenotypeAge(10)
+              .maximalPhenotypeAge(100)
               .offspringSelector(new RouletteWheelSelector<>())
               .offspringFraction(0.8)
               .populationSize(POPULATION_SIZE)
@@ -102,10 +104,10 @@ class DynGASolver implements Solver<TimeLine> {
 
                 engine.stream(list).limit(pred).parallel().forEach { result ->
                     TimeLine tl = codec.decode(result.bestPhenotype.genotype)
-//                    def aux = new DescriptiveStatistics((result.population*.fitness) as double[])
-//                    def stats = new Stats(aux.min, aux.max, aux.mean, aux.getPercentile(50),
-//                            aux.getPercentile(25), aux.getPercentile(75), aux.standardDeviation)
-                    sub.onNext(new Tuple2(tl, result.population))
+                    def aux = new DescriptiveStatistics((result.population*.fitness) as double[])
+                    def stats = new Stats(aux.min, aux.max, aux.mean, aux.getPercentile(50),
+                            aux.getPercentile(25), aux.getPercentile(75), aux.standardDeviation)
+                    sub.onNext(new Tuple2(tl.addStats(stats), result.population))
                 }
             }
             sub.onCompleted()
@@ -129,7 +131,7 @@ class DynGASolver implements Solver<TimeLine> {
                     Stream.concat(rep, (chromosomeSize..<instSize).stream())
             ISeq<Integer> seq = ISeq.of(0..<instSize)
             ISeq<EnumGene<Integer>> nseq = nrep.map { EnumGene.<Integer> of(it, seq) }
-                                                           .collect(ISeq.toISeq())
+                                               .collect(ISeq.toISeq())
             Genotype.of([new PermutationChromosome<>(nseq)])
         }
     }

@@ -5,13 +5,30 @@ import React, { Component } from 'react'
 import { Panel } from 'react-bootstrap';
 import Immutable from 'immutable'
 
+const opts = {
+    width: '100%',
+    height: '200px',
+    // stack: false,
+    showMajorLabels: true,
+//    showCurrentTime: true,
+    zoomMin: 1000000,
+    // type: 'background',
+    groupOrder: function (a, b) { return a.value - b.value; },
+    format: {
+        minorLabels: { minute: 'h:mma', hour: 'ha' }
+    },
+    orientation: { axis: 'top' },
+    margin: {item: 1}
+    // item: { axis: 'top' }
+}
+
 export default class Timeline extends Component {
 
     constructor(args) {
         super(args)
         this.state = {items: [],
                       groups: [],
-                      options: this.props.options,
+                      options: opts,
                       running: false,
                       maxHours: -1,
                       version: -1};
@@ -46,13 +63,12 @@ export default class Timeline extends Component {
 
 //        const itemsChange = !Immutable.fromJS(items).equals(Immutable.fromJS(nextState.items))
 //        const groupsChange = !Immutable.fromJS(groups).equals(Immutable.fromJS(nextState.groups))
-//        const optionsChange = !Immutable.fromJS(options).equals(Immutable.fromJS(nextState.options))
         const runningChange = running !== nextState.running
         const maxHoursChange = maxHours !== nextState.maxHours
         const versionChange = version !== nextState.version
         const timeChange = currentTime !== nextState.currentTime
 
-        //let gonnaChange = itemsChange || groupsChange || optionsChange || runningChange || maxHoursChange || versionChange
+        //let gonnaChange = itemsChange || groupsChange || runningChange || maxHoursChange || versionChange
 
         return runningChange || maxHoursChange || versionChange || timeChange
     }

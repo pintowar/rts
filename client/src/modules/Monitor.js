@@ -6,23 +6,6 @@ import { Grid, Row, Col } from 'react-bootstrap';
 import SockJS from 'sockjs-client'
 import Stomp from 'stompjs'
 
-const options = {
-    width: '100%',
-    height: '200px',
-    // stack: false,
-    showMajorLabels: true,
-    // showCurrentTime: true,
-    zoomMin: 1000000,
-    // type: 'background',
-    groupOrder: function (a, b) { return a.value - b.value; },
-    format: {
-        minorLabels: { minute: 'h:mma', hour: 'ha' }
-    },
-    orientation: { axis: 'top' },
-    margin: {item: 1}
-    // item: { axis: 'top' }
-}
-
 export default class Monitor extends Component {
 
     componentDidMount() {
@@ -53,7 +36,7 @@ export default class Monitor extends Component {
                 <Row>
                     <Col lgOffset={1} lg={10} >
                         <Controlpanel ref="controlpanel" url={task_url} start={startUrl} stop={stopUrl}/>
-                        <Timeline ref='timeline' options={options} url={task_url} />
+                        <Timeline ref='timeline' url={task_url} />
                         <Timeseries ref='timeseries' url={solutions_url} />
                     </Col>
                 </Row>

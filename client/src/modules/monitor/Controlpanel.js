@@ -34,10 +34,7 @@ export default class Controlpanel extends Component {
     }
 
     start() {
-        let parent = this._reactInternalInstance._currentElement._owner._instance
-        let url = this.props.start
-        fetch(url).then(r => r.json().then(s => parent.changeData(s)))
-                  .catch(error => console.error('Error connecting to server: ' + error) )
+        this.solve(this.props.start)
     }
 
     stop() {

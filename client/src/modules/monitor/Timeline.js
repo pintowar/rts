@@ -1,6 +1,6 @@
 import vis from 'vis'
 import 'vis/dist/vis.css'
-import './css/item.css'
+import '../../css/item.css'
 import React, { Component } from 'react'
 import { Panel } from 'react-bootstrap';
 import Immutable from 'immutable'

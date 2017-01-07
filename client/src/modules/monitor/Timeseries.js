@@ -9,6 +9,7 @@ export default class Timeseries extends Component {
         super(args)
         this.state = { data: {} };
         this.running = true
+        this.dataset = new vis.DataSet(this.state.data)
     }
 
     changeData(data) {
@@ -16,24 +17,21 @@ export default class Timeseries extends Component {
     }
 
     componentDidMount() {
-        const { container } = this.refs
         let self = this
-        let options = {};
-        let newGraph = (c => self.graph = new vis.Graph2d(container, self.dataset, options))
-        this.dataset = new vis.DataSet(this.state.data)
+        this.graph = new vis.Graph2d(this.refs.container, this.dataset, {})
 
         fetch(this.props.url)
         .then(r => r.json().then(s => self.dataset.add(s) ))
-        .then(newGraph)
-        .catch(newGraph)
+        .then(c => self.graph.fit() )
+        .catch(c => self.graph.fit() )
     }
 
     componentDidUpdate() {
         let point = { x: this.state.data.createdAt, y: this.state.data.maxHours }
-        if(!this.running && this.state.data.running) {
+        if(this.running !== undefined && !this.running && this.state.data.running) {
             this.dataset.clear()// = new vis.DataSet()
         } else {
-            this.dataset.add(point)
+            if(point.x) this.dataset.add(point)
         }
 
         this.graph.fit()

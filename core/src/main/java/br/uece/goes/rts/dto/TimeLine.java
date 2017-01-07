@@ -2,6 +2,7 @@ package br.uece.goes.rts.dto;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
@@ -100,6 +101,10 @@ public class TimeLine implements Serializable {
 
     public Date getCreatedAt() {
         return createdAt;
+    }
+
+    public Date getCurrentTime() {
+        return Date.from(initialPeriod.plusHours(secondsElapsed).atZone(ZoneId.systemDefault()).toInstant());
     }
 
     public Stats getStats() {

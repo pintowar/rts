@@ -41,7 +41,7 @@ export default class Timeline extends Component {
     shouldComponentUpdate(nextProps, nextState) {
         const {
 //            items, groups, options, running, maxHours, version
-            running, maxHours, version
+            running, maxHours, version, currentTime
         } = this.state
 
 //        const itemsChange = !Immutable.fromJS(items).equals(Immutable.fromJS(nextState.items))
@@ -50,10 +50,11 @@ export default class Timeline extends Component {
         const runningChange = running !== nextState.running
         const maxHoursChange = maxHours !== nextState.maxHours
         const versionChange = version !== nextState.version
+        const timeChange = currentTime !== nextState.currentTime
 
         //let gonnaChange = itemsChange || groupsChange || optionsChange || runningChange || maxHoursChange || versionChange
 
-        return runningChange || maxHoursChange || versionChange
+        return runningChange || maxHoursChange || versionChange || timeChange
     }
 
     init() {
@@ -61,7 +62,7 @@ export default class Timeline extends Component {
         let $el = this.TimelineElement
 
         const {
-            items, groups, options
+            items, groups, options, currentTime
             // animate = true,
         } = this.state
 
@@ -74,6 +75,7 @@ export default class Timeline extends Component {
             timelineItems.clear()
             timelineItems.add(items)
             $el.setItems(timelineItems)
+            $el.setCurrentTime(currentTime)
             if (groupExists) {
                 timelineGroups.clear()
                 timelineGroups.add(groups)

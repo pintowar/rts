@@ -21,11 +21,13 @@ class TaskController implements RxController {
 
     def index() {
         def sol = solutionDao.bestSolution()
+        header 'Content-Type', "application/json"
         render JsonOutput.toJson(sol ?: [:])
     }
 
     def solutions() {
         def hist = solutionDao.historicalSolutions().collect { [x: it.createdAt, y: it.maxHours] }
+        header 'Content-Type', "application/json"
         render JsonOutput.toJson(hist ?: [])
     }
 
@@ -36,12 +38,14 @@ class TaskController implements RxController {
     def startSolver() {
         jobDao.startExecution()
         SolverJob.triggerNow()
+        header 'Content-Type', "application/json"
         render JsonOutput.toJson(TimeLine.EMPTY)
     }
 
     def stopSolver() {
         jobDao.stopExecution()
         def sol = solutionDao.stopAndGetBestSolution()
+        header 'Content-Type', "application/json"
         render JsonOutput.toJson(sol)
     }
 

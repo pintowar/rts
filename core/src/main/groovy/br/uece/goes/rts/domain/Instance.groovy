@@ -19,26 +19,28 @@ import java.time.temporal.ChronoUnit
 @Canonical
 @TypeChecked
 class Instance {
-    public static final Instance EMPTY = new Instance([], [], -1)
+    public static final Instance EMPTY = new Instance([], [], -1, LocalDateTime.now())
 
     List<Task> tasks
     List<Employee> employees
     int version
-    private final Map<Integer, Integer> preceds
+    LocalDateTime currentTime
+    private final Map<Integer, Integer> precedes
 
-    Instance(List<Task> tasks, List<Employee> employees, int version) {
+    Instance(List<Task> tasks, List<Employee> employees, int version, LocalDateTime currentTime) {
         this.tasks = tasks
         this.employees = employees
         this.version = version
+        this.currentTime = currentTime
 
-        this.preceds = Collections.unmodifiableMap(tasks.findAll { it.preced > 0 }.collectEntries {
+        this.precedes = Collections.unmodifiableMap(tasks.findAll { it.preced > 0 }.collectEntries {
             [it.id, it.preced]
         })
 
     }
 
     @Memoized
-    List<Estimative> getEstimatives() {
+    List<Estimative> getEstimates() {
         tasks.collectMany { t ->
             employees.collect { e ->
                 new Estimative(e, t)
@@ -48,7 +50,7 @@ class Instance {
 
     @Memoized
     Map<List<Integer, Integer>, Integer> transformEstimatives() {
-        estimatives.collectEntries { e -> [[e.employee.id, e.task.id], e.hours] }
+        estimates.collectEntries { e -> [[e.employee.id, e.task.id], e.hours] }
     }
 
     @Memoized
@@ -86,11 +88,11 @@ class Instance {
                 }
             }
         }
-        int precedsPunishment = preceds.count { k, v -> itemsMap[k].end >= itemsMap[v].start }.intValue()
+        int precedesPunishment = precedes.count { k, v -> itemsMap[k].end >= itemsMap[v].start }.intValue()
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
         int maxHours = (int) initialDate.until(maxTime, ChronoUnit.HOURS)
 
-        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedsPunishment, version, stats, true)
+        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedesPunishment, version, stats, true)
     }
 
     TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {
@@ -101,6 +103,10 @@ class Instance {
     List<Integer> indexes() {
         //(1..(this.tasks.size())) + (1..<(this.employees.size())).collect { -it }
         ListUtils.intercale(1..(this.tasks.size()), (1..<(this.employees.size())).collect { -it })
+    }
+
+    Integer size() {
+        indexes().size()
     }
 
     @Memoized

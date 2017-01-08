@@ -5,8 +5,13 @@ import br.uece.goes.rts.domain.Employee
 import br.uece.goes.rts.domain.Instance
 import br.uece.goes.rts.domain.Task
 import rx.Observable
+import rx.functions.Func2
 
-import java.util.concurrent.TimeUnit as TU
+import java.time.LocalDateTime
+import java.util.concurrent.TimeUnit
+
+import static rx.Observable.combineLatest
+import static rx.Observable.interval
 
 /**
  * Created by thiago on 09/12/16.
@@ -16,16 +21,28 @@ class InstanceParser implements InstanceDao {
 
     @Override
     Observable<Instance> observeInstanceByName(String name) {
-        Observable.interval(0, 30, TU.SECONDS)
-                  .map { "${name}-$it" }
-                  .map { getInstanceByName(it) }
-                  .onErrorReturn { Instance.EMPTY }
+        observeInstanceByName(name, LocalDateTime.now())
+    }
+
+    @Override
+    Observable<Instance> observeInstanceByName(String name, LocalDateTime currentTime) {
+        long period = 30
+        combineLatest(interval(0, 1, TimeUnit.SECONDS), interval(0, period, TimeUnit.SECONDS),
+                { Long a, Long b -> new Tuple2<Long, Long>(a, b) } as Func2)
+                .map { Tuple2<Long, Long> tup -> getInstanceByName("${name}-${tup.second}",
+                                                                                    currentTime.plusHours(tup.first)) }
+//                  .distinctUntilChanged({Instance it -> it.version } as Func1)
+                .onErrorReturn { Instance.EMPTY }
     }
 
     @Override
     Instance getInstanceByName(String name) {
+        getInstanceByName(name, LocalDateTime.now())
+    }
+
+    Instance getInstanceByName(String name, LocalDateTime currentTime) {
         def ver = name.split('-').last().toInteger()
-        new Instance(getInstanceTasks(name), getInstanceEmployees(name), ver)
+        new Instance(getInstanceTasks(name), getInstanceEmployees(name), ver, currentTime)
     }
 
     @Override

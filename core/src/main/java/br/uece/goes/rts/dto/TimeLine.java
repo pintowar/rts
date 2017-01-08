@@ -7,6 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Created by thiago on 13/12/16.
@@ -36,9 +37,10 @@ public class TimeLine implements Serializable {
     private final Stats stats;
 
     public static final TimeLine EMPTY = new TimeLine(LocalDateTime.now(), Collections.emptyList(),
-            Collections.emptyList(), -1, -1, -1, 0, false);
+            Collections.emptyList(), Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MAX_VALUE, 0, false);
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version, Stats stats, boolean running) {
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours,
+                    int priorityPunishment, int precedsPunishment, int version, Stats stats, boolean running) {
         this.initialPeriod = initialPeriod;
         this.items = Collections.unmodifiableList(items);
         this.groups = Collections.unmodifiableList(groups);
@@ -51,15 +53,19 @@ public class TimeLine implements Serializable {
         this.secondsElapsed = initialPeriod.until(LocalDateTime.now(), ChronoUnit.SECONDS);
     }
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version, boolean running) {
-        this(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, new Stats(), running);
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours,
+                    int priorityPunishment, int precedsPunishment, int version, boolean running) {
+        this(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, new Stats(),
+                running);
     }
 
-    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version) {
+    public TimeLine(LocalDateTime initialPeriod, List<Item> items, List<Group> groups, int maxHours,
+                    int priorityPunishment, int precedsPunishment, int version) {
         this(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, true);
     }
 
-    public TimeLine(List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment, int version) {
+    public TimeLine(List<Item> items, List<Group> groups, int maxHours, int priorityPunishment, int precedsPunishment,
+                    int version) {
         this(LocalDateTime.now(), items, groups, maxHours, priorityPunishment, precedsPunishment, version, true);
     }
 
@@ -107,6 +113,10 @@ public class TimeLine implements Serializable {
         return Date.from(initialPeriod.plusHours(secondsElapsed).atZone(ZoneId.systemDefault()).toInstant());
     }
 
+    public boolean isEmpty() {
+        return items.isEmpty() && groups.isEmpty();
+    }
+
     public Stats getStats() {
         return stats;
     }
@@ -121,5 +131,13 @@ public class TimeLine implements Serializable {
 
     public TimeLine addStats(Stats stats) {
         return new TimeLine(initialPeriod, items, groups, maxHours, priorityPunishment, precedsPunishment, version, stats, running);
+    }
+
+    public List<Item> listStartingItemsBefore(Date date) {
+        return items.stream().filter(it -> it.getStart().before(date)).collect(Collectors.toList());
+    }
+
+    public List<Item> listStartingItemsBefore(LocalDateTime date) {
+        return listStartingItemsBefore(Date.from(date.atZone(ZoneId.systemDefault()).toInstant()));
     }
 }

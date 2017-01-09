@@ -5,6 +5,7 @@ import br.uece.goes.rts.domain.Instance
 import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
+import br.uece.goes.rts.solver.impl.op.OldTaskRepair
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
 import org.jenetics.engine.Codec
@@ -53,7 +54,7 @@ class FullDynGASolver implements Solver<TimeLine> {
                                                                                 Population<EnumGene<Integer>, Double> pop,
                                                                                 TimeLine sol) {
         Codec<TimeLine, EnumGene<Integer>> codec = createCodec(period, instance)
-        def engine = createEngine(codec)
+        def engine = createEngine(codec, instance, sol.listStartingItemsBefore(instance.currentTime)*.id)
         gaSolver(codec, engine, instance, sol, pop)
     }
 
@@ -66,7 +67,8 @@ class FullDynGASolver implements Solver<TimeLine> {
     }
 
 
-    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec) {
+    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, Instance instance,
+                                                   List<Integer> fixed) {
         Function<TimeLine, Double> func = { TimeLine val -> val.fitness }
 
         Engine.builder(func, codec)
@@ -76,8 +78,9 @@ class FullDynGASolver implements Solver<TimeLine> {
               .offspringFraction(0.8)
               .populationSize(POPULATION_SIZE)
               .alterers(
+                new PartiallyMatchedCrossover<>(CROSSOVER_RATE),
                 new SwapMutator<>(MUTATION_RATE),
-                new PartiallyMatchedCrossover<>(CROSSOVER_RATE))
+                new OldTaskRepair(instance.indexes(), fixed))
               .build()
     }
 
@@ -102,7 +105,9 @@ class FullDynGASolver implements Solver<TimeLine> {
             })
 
             if (!instance.isEmpty()) {
-                println preSolution.listStartingItemsBefore(instance.currentTime).collect { it.id - 1 }.sort().join(', ')
+                println preSolution.listStartingItemsBefore(instance.currentTime).collect {
+                    it.id - 1
+                }.sort().join(', ')
                 List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance.indexes().size())
 
                 engine.stream(list).limit(pred).parallel().forEach { result ->

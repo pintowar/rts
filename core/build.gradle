@@ -22,4 +22,5 @@ dependencies {
     compile 'io.jenetics:jenetics:3.7.0'
     compile 'org.slf4j:slf4j-api:1.7.21'
     runtime 'ch.qos.logback:logback-classic:1.1.7'
+    testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3'
 }

@@ -21,9 +21,11 @@ class ListUtils {
     }
 
     static <T> List<T> intercale(List<T> a, List<T> b) {
-        assert a.size() > b.size()
-        int miniSize = (int) Math.ceil(a.size() / b.size())
-        List<List<T>> aux = a.collate(miniSize, miniSize)
-        b.indexed().collectMany{ k, v -> [v] + (aux[k] ?: [])} as List<T>
+        if (!a.isEmpty()) {
+            def sb = a.size() > b.size() ? b : b.take(a.size() - 1)
+            int miniSize = (int) Math.floor(a.size() / (sb.size() + 1))
+            List<List<T>> aux = a.collate(miniSize, miniSize)
+            (0..<aux.size()).collectMany { int it -> aux[it] + (sb[it] ? [sb[it]] : []) }
+        } else []
     }
 }

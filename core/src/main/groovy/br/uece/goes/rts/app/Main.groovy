@@ -4,7 +4,7 @@ import br.uece.goes.rts.dao.InstanceDao
 import br.uece.goes.rts.dao.impl.InstanceParser
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
-import br.uece.goes.rts.solver.impl.DynGASolver
+import br.uece.goes.rts.solver.impl.FullDynGASolver
 import groovy.util.logging.Slf4j
 
 import java.util.concurrent.TimeUnit
@@ -20,13 +20,13 @@ class Main {
     }
 
     Solver<TimeLine> createSolver() {
-        new DynGASolver(instanceDao: createInstanceDao())
+        new FullDynGASolver(instanceDao: createInstanceDao())
     }
 
     void batchSolver() {
         def solver = createSolver()
         def format = '%03d'
-        (1..100).forEach { int exec ->
+        (1..1).forEach { int exec ->
             solver.solve()
                   .throttleFirst(1, TimeUnit.SECONDS)
                   .toBlocking()

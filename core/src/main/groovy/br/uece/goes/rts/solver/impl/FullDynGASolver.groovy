@@ -5,13 +5,13 @@ import br.uece.goes.rts.domain.Instance
 import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
-import br.uece.goes.rts.solver.impl.op.OldTaskRepair
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
 import org.jenetics.engine.Codec
 import org.jenetics.engine.Engine
 import org.jenetics.engine.EvolutionResult
 import org.jenetics.util.ISeq
+import org.jenetics.util.MSeq
 import rx.Observable
 import rx.Subscriber
 import rx.Subscription
@@ -43,19 +43,18 @@ class FullDynGASolver implements Solver<TimeLine> {
         LocalDateTime initialDate = LocalDateTime.now()
         Observable<Instance> instance = instanceDao.observeInstanceByName("initial", initialDate)
         AtomicReference<Population<EnumGene<Integer>, Double>> initialPop = new AtomicReference<>(Population.empty())
-        AtomicReference<TimeLine> initialSol = new AtomicReference<>(TimeLine.EMPTY)
         instance.switchMap {
-            solving(initialDate, it, initialPop.get(), initialSol.get())
-                    .doOnNext { el -> initialSol.set(el.first); initialPop.set(el.second) }
+            solving(initialDate, it, initialPop.get())
+                    .doOnNext { el -> initialPop.set(el.second) }
         }.map { it.first }//.scan { a, b -> b.maxHours < a.maxHours ? b : a }
     }
 
     Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> solving(LocalDateTime period, Instance instance,
-                                                                                Population<EnumGene<Integer>, Double> pop,
-                                                                                TimeLine sol) {
+                                                                                Population<EnumGene<Integer>, Double> pop) {
         Codec<TimeLine, EnumGene<Integer>> codec = createCodec(period, instance)
-        def engine = createEngine(codec, instance, sol.listStartingItemsBefore(instance.currentTime)*.id)
-        gaSolver(codec, engine, instance, sol, pop)
+        //sol.listStartingItemsBefore(instance.currentTime).collectEntries { [it.position, it.id] }
+        def engine = createEngine(codec)
+        gaSolver(codec, engine, instance, pop)
     }
 
     Codec<TimeLine, EnumGene<Integer>> createCodec(LocalDateTime period, Instance instance) {
@@ -67,8 +66,7 @@ class FullDynGASolver implements Solver<TimeLine> {
     }
 
 
-    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, Instance instance,
-                                                   List<Integer> fixed) {
+    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec) {
         Function<TimeLine, Double> func = { TimeLine val -> val.fitness }
 
         Engine.builder(func, codec)
@@ -79,15 +77,14 @@ class FullDynGASolver implements Solver<TimeLine> {
               .populationSize(POPULATION_SIZE)
               .alterers(
                 new PartiallyMatchedCrossover<>(CROSSOVER_RATE),
-                new SwapMutator<>(MUTATION_RATE),
-                new OldTaskRepair(instance.indexes(), fixed))
+                new SwapMutator<>(MUTATION_RATE))
+        //new OldTaskRepair(fixed))
               .build()
     }
 
     Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> gaSolver(Codec<TimeLine, EnumGene<Integer>> codec,
                                                                                  Engine<EnumGene<Integer>, Double> engine,
                                                                                  Instance instance,
-                                                                                 TimeLine preSolution,
                                                                                  Population<EnumGene<Integer>, Double> pop) {
         Observable.create { Subscriber<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> sub ->
             AtomicBoolean running = new AtomicBoolean(true)
@@ -105,13 +102,10 @@ class FullDynGASolver implements Solver<TimeLine> {
             })
 
             if (!instance.isEmpty()) {
-                println preSolution.listStartingItemsBefore(instance.currentTime).collect {
-                    it.id - 1
-                }.sort().join(', ')
                 List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance.indexes().size())
 
-                engine.stream(list).limit(pred).parallel().forEach { result ->
-                    TimeLine tl = codec.decode(result.bestPhenotype.genotype)
+                engine.stream(list).limit(pred).forEach { result ->
+                    TimeLine tl = codec.decode(repair(result.bestPhenotype.genotype))
                     def aux = new DescriptiveStatistics((result.population*.fitness) as double[])
                     def stats = new Stats(aux.min, aux.max, aux.mean, aux.getPercentile(50),
                             aux.getPercentile(25), aux.getPercentile(75), aux.standardDeviation)
@@ -120,6 +114,17 @@ class FullDynGASolver implements Solver<TimeLine> {
             }
             sub.onCompleted()
         }.subscribeOn(Schedulers.newThread())
+    }
+
+    Genotype<EnumGene<Integer>> repair(Genotype<EnumGene<Integer>> gt) {
+        Map<Integer, Integer> fixed = [0: 15, 9: 25, 12: 6]
+        final Chromosome<EnumGene<Integer>> chromosome = gt.chromosome
+        final MSeq<EnumGene<Integer>> genes = chromosome.toSeq().copy()
+
+        final Map<Integer, Integer> alleles = (chromosome*.allele).indexed().collectEntries { k, v -> [v, k] }
+        fixed.forEach { k, v -> genes.swap(k, alleles[v]) }
+
+        Genotype.of([chromosome.newInstance(genes.toISeq())])
     }
 
     List<Genotype<EnumGene<Integer>>> newGenotypeList(Population<EnumGene<Integer>, Double> pop, int instSize) {

@@ -68,6 +68,7 @@ class Instance {
         LocalDateTime maxTime = initialDate
         boolean hasEstimatives = !transformEstimatives().isEmpty()
         int priorityPunishment = 0
+        int position = 0
         Map<Integer, Item> itemsMap = [:]
         ListUtils.splitWhere(representation) { int it -> it < 0 }.indexed().each { k, v ->
             int employeeId = k + 1
@@ -80,7 +81,7 @@ class Instance {
                     maxTime = end > maxTime ? end : maxTime
                     Task t = transformTasks().get(taskId)
                     items << new Item(t.id, t.content, Date.from(beginning.atZone(ZoneId.systemDefault()).toInstant()),
-                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId)
+                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId, position++)
                     priorityPunishment += (priorityCounter < t.priority ? t.priority - priorityCounter : 0)
                     priorityCounter = t.priority
                     itemsMap[t.id] = items.last()

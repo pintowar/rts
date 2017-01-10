@@ -12,16 +12,10 @@ import java.util.stream.IntStream
 class OldTaskRepair<G extends Gene<?, G>,
         C extends Comparable<? super C>> implements Alterer<G, C> {
 
-    List<Integer> indexes
+    Map<Integer, Integer> fixed
 
-    List<Integer> fixed
-
-    private Map<Integer, Integer> aux
-
-    OldTaskRepair(List<Integer> indexes, List<Integer> fixed) {
-        this.indexes = indexes
+    OldTaskRepair(Map<Integer, Integer> fixed) {
         this.fixed = fixed
-        this.aux = indexes.indexed().findAll { k, v -> v in fixed }
     }
 
     @Override
@@ -29,7 +23,7 @@ class OldTaskRepair<G extends Gene<?, G>,
         if (fixed.isEmpty()) return 0
         else {
             AtomicInteger alterations = new AtomicInteger(0)
-            IntStream.range(0, population.size()).parallel().forEach { idx ->
+            IntStream.range(0, population.size()).forEach { idx ->
                 final Phenotype<G, C> pt = population.get(idx)
 
                 final Genotype<G> gt = pt.getGenotype()
@@ -44,8 +38,14 @@ class OldTaskRepair<G extends Gene<?, G>,
 
     Genotype<G> repair(Genotype<G> gt, AtomicInteger alterations) {
         final Chromosome<G> chromosome = gt.chromosome
-        def alleles = (chromosome*.allele).indexed().collectEntries { k, v -> [v, k] }
-        def wut = aux.keySet().collect { alleles[it] }
-        Genotype.of([chromosome])
+        final MSeq<G> genes = chromosome.toSeq().copy()
+
+        final Map<Integer, Integer> alleles = (chromosome*.allele).indexed().collectEntries { k, v -> [v, k] }
+        fixed.forEach { k, v ->
+            genes.swap(k, alleles[v])
+            alterations.incrementAndGet()
+        }
+
+        Genotype.of([chromosome.newInstance(genes.toISeq())])
     }
 }

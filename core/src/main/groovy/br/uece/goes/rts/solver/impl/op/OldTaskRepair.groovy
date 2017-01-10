@@ -1,6 +1,8 @@
 package br.uece.goes.rts.solver.impl.op
 
+import br.uece.goes.rts.dto.TimeLine
 import org.jenetics.*
+import org.jenetics.engine.Codec
 import org.jenetics.util.MSeq
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -13,16 +15,21 @@ class OldTaskRepair<G extends Gene<?, G>,
         C extends Comparable<? super C>> implements Alterer<G, C> {
 
     Map<Integer, Integer> fixed
+    TimeLine oldTimeLine
+    Codec<TimeLine, G> codec
 
-    OldTaskRepair(Map<Integer, Integer> fixed) {
-        this.fixed = fixed
+    OldTaskRepair(TimeLine timeLine, Codec<TimeLine, G> codec) {
+        this.oldTimeLine = timeLine
+        this.codec = codec
+        this.fixed = [0: 15, 9: 25, 12: 6]//oldTimeLine.items.findResults { if (it.locked) [it.position, it.id] }.collectEntries()
     }
 
     @Override
     int alter(Population<G, C> population, long generation) {
-        if (fixed.isEmpty()) return 0
+        if (oldTimeLine.isEmpty()) return 0
         else {
             AtomicInteger alterations = new AtomicInteger(0)
+            Phenotype<G, C> best = null
             IntStream.range(0, population.size()).forEach { idx ->
                 final Phenotype<G, C> pt = population.get(idx)
 
@@ -31,7 +38,10 @@ class OldTaskRepair<G extends Gene<?, G>,
 
                 final Phenotype<G, C> mpt = pt.newInstance(mgt, generation)
                 population.set(idx, mpt)
+                best = best ? [best, pt].min { it.fitness } : pt
             }
+            this.oldTimeLine = codec.decode(best.genotype)
+//            this.fixed = oldTimeLine.items.findResults { if (it.locked) [it.position, it.id] }.collectEntries()
             return alterations.get()
         }
     }

@@ -14,8 +14,9 @@ public class Item implements Serializable {
     private final String className;
     private final Integer group;
     private final Integer position;
+    private final Boolean locked;
 
-    public Item(Integer id, String content, Date start, Date end, String className, Integer group, Integer position) {
+    public Item(Integer id, String content, Date start, Date end, String className, Integer group, Integer position, Boolean locked) {
         this.id = id;
         this.content = content;
         this.start = start;
@@ -23,6 +24,11 @@ public class Item implements Serializable {
         this.className = className;
         this.group = group;
         this.position = position;
+        this.locked = locked;
+    }
+
+    public Item(Integer id, String content, Date start, Date end, String className, Integer group, Integer position) {
+        this(id, content, start, end, className, group, position, false);
     }
 
     public Integer getId() {
@@ -51,5 +57,9 @@ public class Item implements Serializable {
 
     public Integer getPosition() {
         return position;
+    }
+
+    public Boolean getLocked() {
+        return locked;
     }
 }

@@ -5,13 +5,13 @@ import br.uece.goes.rts.domain.Instance
 import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
+import br.uece.goes.rts.solver.impl.op.OldTaskRepair
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
 import org.jenetics.engine.Codec
 import org.jenetics.engine.Engine
 import org.jenetics.engine.EvolutionResult
 import org.jenetics.util.ISeq
-import org.jenetics.util.MSeq
 import rx.Observable
 import rx.Subscriber
 import rx.Subscription
@@ -52,8 +52,9 @@ class FullDynGASolver implements Solver<TimeLine> {
     Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> solving(LocalDateTime period, Instance instance,
                                                                                 Population<EnumGene<Integer>, Double> pop) {
         Codec<TimeLine, EnumGene<Integer>> codec = createCodec(period, instance)
-        //sol.listStartingItemsBefore(instance.currentTime).collectEntries { [it.position, it.id] }
-        def engine = createEngine(codec)
+        TimeLine tl = pop.isEmpty() ? TimeLine.EMPTY : codec.decode(pop.sort(false) { it.fitness }.first().genotype)
+
+        def engine = createEngine(codec, tl)
         gaSolver(codec, engine, instance, pop)
     }
 
@@ -65,8 +66,7 @@ class FullDynGASolver implements Solver<TimeLine> {
         }
     }
 
-
-    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec) {
+    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, TimeLine tl) {
         Function<TimeLine, Double> func = { TimeLine val -> val.fitness }
 
         Engine.builder(func, codec)
@@ -77,8 +77,8 @@ class FullDynGASolver implements Solver<TimeLine> {
               .populationSize(POPULATION_SIZE)
               .alterers(
                 new PartiallyMatchedCrossover<>(CROSSOVER_RATE),
-                new SwapMutator<>(MUTATION_RATE))
-        //new OldTaskRepair(fixed))
+                new SwapMutator<>(MUTATION_RATE),
+                new OldTaskRepair(tl, codec))
               .build()
     }
 
@@ -105,7 +105,7 @@ class FullDynGASolver implements Solver<TimeLine> {
                 List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance.indexes().size())
 
                 engine.stream(list).limit(pred).forEach { result ->
-                    TimeLine tl = codec.decode(repair(result.bestPhenotype.genotype))
+                    TimeLine tl = codec.decode(result.bestPhenotype.genotype)
                     def aux = new DescriptiveStatistics((result.population*.fitness) as double[])
                     def stats = new Stats(aux.min, aux.max, aux.mean, aux.getPercentile(50),
                             aux.getPercentile(25), aux.getPercentile(75), aux.standardDeviation)
@@ -116,19 +116,19 @@ class FullDynGASolver implements Solver<TimeLine> {
         }.subscribeOn(Schedulers.newThread())
     }
 
-    Genotype<EnumGene<Integer>> repair(Genotype<EnumGene<Integer>> gt) {
-        Map<Integer, Integer> fixed = [0: 15, 9: 25, 12: 6]
-        final Chromosome<EnumGene<Integer>> chromosome = gt.chromosome
-        final MSeq<EnumGene<Integer>> genes = chromosome.toSeq().copy()
-
-        final Map<Integer, Integer> alleles = (chromosome*.allele).indexed().collectEntries { k, v -> [v, k] }
-        fixed.forEach { k, v -> genes.swap(k, alleles[v]) }
-
-        Genotype.of([chromosome.newInstance(genes.toISeq())])
-    }
+//    Genotype<EnumGene<Integer>> repair(Genotype<EnumGene<Integer>> gt) {
+//        Map<Integer, Integer> fixed = [0: 15, 9: 25, 12: 6]
+//        final Chromosome<EnumGene<Integer>> chromosome = gt.chromosome
+//        final MSeq<EnumGene<Integer>> genes = chromosome.toSeq().copy()
+//
+//        final Map<Integer, Integer> alleles = (chromosome*.allele).indexed().collectEntries { k, v -> [v, k] }
+//        fixed.forEach { k, v -> genes.swap(k, alleles[v]) }
+//
+//        Genotype.of([chromosome.newInstance(genes.toISeq())])
+//    }
 
     List<Genotype<EnumGene<Integer>>> newGenotypeList(Population<EnumGene<Integer>, Double> pop, int instSize) {
-        Comparator<Phenotype<EnumGene<Integer>, Double>> sort = { a, b -> a.fitness.compareTo(b.fitness) }
+        Comparator<Phenotype<EnumGene<Integer>, Double>> sort = { a, b -> a.fitness <=> b.fitness }
         pop.stream().sorted(sort)
            .map { adjustSolution(instSize, it.genotype) }
            .limit(NUM_SURVIVOR).collect(Collectors.toList())

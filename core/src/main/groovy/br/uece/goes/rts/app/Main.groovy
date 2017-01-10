@@ -30,7 +30,10 @@ class Main {
             solver.solve()
                   .throttleFirst(1, TimeUnit.SECONDS)
                   .toBlocking()
-                  .subscribe({ result -> log.info "Exec ${String.format(format, exec)}, Result: ${result.maxHours}" },
+                  .subscribe({ result ->
+                    println result.items.groupBy {it.group}.collect { k,v -> v*.id}.join('\n')
+                     println "==========================================================="
+                   },
                     { e -> log.error e.message; e.printStackTrace(System.err) },
                     { log.warn "Fim exec ${String.format(format, exec)}!!" })
         }

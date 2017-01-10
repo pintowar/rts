@@ -81,7 +81,8 @@ class Instance {
                     maxTime = end > maxTime ? end : maxTime
                     Task t = transformTasks().get(taskId)
                     items << new Item(t.id, t.content, Date.from(beginning.atZone(ZoneId.systemDefault()).toInstant()),
-                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId, position++)
+                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId, position++,
+                            beginning < currentTime)
                     priorityPunishment += (priorityCounter < t.priority ? t.priority - priorityCounter : 0)
                     priorityCounter = t.priority
                     itemsMap[t.id] = items.last()

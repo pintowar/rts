@@ -96,7 +96,7 @@ class Instance {
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
         int maxHours = (int) initialDate.until(maxTime, ChronoUnit.HOURS)
 
-        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedesP    unishment, version, stats, true)
+        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedesPunishment, version, stats, true)
     }
 
     TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {

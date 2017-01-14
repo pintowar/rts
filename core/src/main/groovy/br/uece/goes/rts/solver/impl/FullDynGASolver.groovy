@@ -54,7 +54,7 @@ class FullDynGASolver implements Solver<TimeLine> {
         Codec<TimeLine, EnumGene<Integer>> codec = createCodec(period, instance)
         TimeLine tl = pop.isEmpty() ? TimeLine.EMPTY : codec.decode(pop.sort(false) { it.fitness }.first().genotype)
 
-        def engine = createEngine(codec, tl)
+        def engine = createEngine(codec, tl, instance)
         gaSolver(codec, engine, instance, pop)
     }
 
@@ -66,7 +66,7 @@ class FullDynGASolver implements Solver<TimeLine> {
         }
     }
 
-    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, TimeLine tl) {
+    Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, TimeLine tl, Instance instance) {
         Function<TimeLine, Double> func = { TimeLine val -> val.fitness }
 
         Engine.builder(func, codec)
@@ -78,7 +78,7 @@ class FullDynGASolver implements Solver<TimeLine> {
               .alterers(
                 new PartiallyMatchedCrossover<>(CROSSOVER_RATE),
                 new SwapMutator<>(MUTATION_RATE),
-                new OldTaskRepair(tl, codec))
+                new OldTaskRepair(tl, codec, instance.indexes()))
               .build()
     }
 

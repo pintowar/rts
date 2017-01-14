@@ -69,6 +69,7 @@ class Instance {
         boolean hasEstimatives = !transformEstimatives().isEmpty()
         int priorityPunishment = 0
         int position = 0
+        int breaker = 0
         Map<Integer, Item> itemsMap = [:]
         ListUtils.splitWhere(representation) { int it -> it < 0 }.indexed().each { k, v ->
             int employeeId = k + 1
@@ -81,20 +82,21 @@ class Instance {
                     maxTime = end > maxTime ? end : maxTime
                     Task t = transformTasks().get(taskId)
                     items << new Item(t.id, t.content, Date.from(beginning.atZone(ZoneId.systemDefault()).toInstant()),
-                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId, position++,
-                            beginning < currentTime)
+                            Date.from(end.atZone(ZoneId.systemDefault()).toInstant()), t.color, employeeId,
+                            breaker + position++, beginning < currentTime)
                     priorityPunishment += (priorityCounter < t.priority ? t.priority - priorityCounter : 0)
                     priorityCounter = t.priority
                     itemsMap[t.id] = items.last()
                     beginning = end.plusMinutes(20)
                 }
+                breaker++
             }
         }
         int precedesPunishment = precedes.count { k, v -> itemsMap[k].end >= itemsMap[v].start }.intValue()
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
         int maxHours = (int) initialDate.until(maxTime, ChronoUnit.HOURS)
 
-        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedesPunishment, version, stats, true)
+        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedesP    unishment, version, stats, true)
     }
 
     TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {

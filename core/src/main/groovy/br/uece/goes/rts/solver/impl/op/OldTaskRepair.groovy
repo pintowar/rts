@@ -1,9 +1,10 @@
 package br.uece.goes.rts.solver.impl.op
 
+import br.uece.goes.rts.ListUtils
 import br.uece.goes.rts.dto.TimeLine
 import org.jenetics.*
 import org.jenetics.engine.Codec
-import org.jenetics.util.MSeq
+import org.jenetics.util.ISeq
 
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.IntStream
@@ -14,14 +15,27 @@ import java.util.stream.IntStream
 class OldTaskRepair<G extends Gene<?, G>,
         C extends Comparable<? super C>> implements Alterer<G, C> {
 
-    Map<Integer, Integer> fixed
+    List<List<Integer>> fixed
     TimeLine oldTimeLine
     Codec<TimeLine, G> codec
+    List<Integer> indexes
+    Set<Integer> breakPoints
+    Set<Integer> fixSet
+    ISeq<Integer> instanceSeq
 
-    OldTaskRepair(TimeLine timeLine, Codec<TimeLine, G> codec) {
+    OldTaskRepair(TimeLine timeLine, Codec<TimeLine, G> codec, List<Integer> indexes) {
         this.oldTimeLine = timeLine
         this.codec = codec
-        this.fixed = [0: 15, 9: 25, 12: 6]//oldTimeLine.items.findResults { if (it.locked) [it.position, it.id] }.collectEntries()
+        this.indexes = indexes
+        //this.fixed = [[15], [25], [6]]
+        this.fixed = oldTimeLine.items.findResults { if (it.locked) [it.group, it.id] }.groupBy { it[0] }.values()
+                                .collect { it*.get(1) }
+        println this.fixed
+        println 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        this.fixSet = fixed.flatten() as Set
+        //oldTimeLine.items.findResults { if (it.locked) [it.position, it.id] }.collectEntries()
+        this.breakPoints = indexes.indexed().findResults { k, v -> if (v < 0) k } as SortedSet
+        this.instanceSeq = ISeq.of(0..<indexes.size())
     }
 
     @Override
@@ -41,21 +55,23 @@ class OldTaskRepair<G extends Gene<?, G>,
                 best = best ? [best, pt].min { it.fitness } : pt
             }
             this.oldTimeLine = codec.decode(best.genotype)
-//            this.fixed = oldTimeLine.items.findResults { if (it.locked) [it.position, it.id] }.collectEntries()
             return alterations.get()
         }
     }
 
     Genotype<G> repair(Genotype<G> gt, AtomicInteger alterations) {
         final Chromosome<G> chromosome = gt.chromosome
-        final MSeq<G> genes = chromosome.toSeq().copy()
+        List<Integer> rep = chromosome*.allele
 
-        final Map<Integer, Integer> alleles = (chromosome*.allele).indexed().collectEntries { k, v -> [v, k] }
-        fixed.forEach { k, v ->
-            genes.swap(k, alleles[v])
-            alterations.incrementAndGet()
+        List<List<Integer>> aux = ListUtils.splitWhere(rep) { it in breakPoints }.indexed()
+                                           .collect { k, v -> fixed[k] + v.findAll { !(it in fixSet) }
         }
+        List<Integer> sol = breakPoints.indexed().inject(aux.first()) { acc, entry ->
+            acc + [entry.value] + aux[entry.key + 1]
+        }.unique()
 
-        Genotype.of([chromosome.newInstance(genes.toISeq())])
+        alterations.addAndGet(fixSet.size())
+        ISeq<EnumGene<Integer>> seq = ISeq.of(sol.collect { EnumGene.<Integer> of(it, instanceSeq) })
+        Genotype.of([new PermutationChromosome<>(seq)])
     }
 }

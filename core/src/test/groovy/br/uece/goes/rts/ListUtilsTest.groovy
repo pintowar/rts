@@ -9,6 +9,18 @@ import spock.util.mop.Use
 @Use(ListUtils)
 class ListUtilsTest extends Specification {
 
+    def "GroupWhere"() {
+        expect:
+        list.groupWhere(0) { it < 0 } == result
+
+        where:
+        list                       || result
+        []                         || [:]
+        [1, 2, 3]                  || [0: [1, 2, 3]]
+        [1, 2, -1, 3, 4, -2, 5, 6] || [0: [1, 2], (-1): [3, 4], (-2): [5, 6]]
+        [1, 2, -2, 3, 4, -1, 5, 6] || [0: [1, 2], (-2): [3, 4], (-1): [5, 6]]
+    }
+
     def "SplitWhere"() {
         expect:
         list.splitWhere { it < 0 } == result

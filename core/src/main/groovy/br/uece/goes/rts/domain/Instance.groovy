@@ -71,8 +71,8 @@ class Instance {
         int position = 0
         int breaker = 0
         Map<Integer, Item> itemsMap = [:]
-        ListUtils.splitWhere(representation) { int it -> it < 0 }.indexed().each { k, v ->
-            int employeeId = k + 1
+        ListUtils.groupWhere(representation, 0) { int it -> it < 0 }.each { k, v ->
+            int employeeId = Math.abs(k) + 1
             LocalDateTime beginning = initialDate
             int priorityCounter = 4
             if (hasEstimatives) {

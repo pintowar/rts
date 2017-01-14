@@ -14,6 +14,20 @@ class ListUtils {
         aux
     }
 
+    static <T> Map<T, List<T>> groupWhere(List<T> list, T initial, Closure<Boolean> cond) {
+        Map<T, List<T>> map = [:].withDefault { [] }
+
+        T key = initial
+        for (int i = 0; i < list.size(); i++) {
+            if (cond(list[i])) {
+                key = list[i]
+                continue
+            }
+            map[key] << list[i]
+        }
+        new HashMap<T, List<T>>(map)
+    }
+
     static <T> List<List<T>> splitWhere(List<T> list, Closure<Boolean> cond) {
         ([-1] + list.indexed().findResults { k, v -> if (cond(v)) k } + [list.size()])
                 .collate(2, 1, false)

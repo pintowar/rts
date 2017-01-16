@@ -18,7 +18,6 @@ class OldTaskRepair<G extends Gene<?, G>,
     List<List<Integer>> fixed
     TimeLine oldTimeLine
     Codec<TimeLine, G> codec
-    List<Integer> indexes
     Set<Integer> breakPoints
     Set<Integer> fixSet
     ISeq<Integer> instanceSeq
@@ -26,14 +25,14 @@ class OldTaskRepair<G extends Gene<?, G>,
     OldTaskRepair(TimeLine timeLine, Codec<TimeLine, G> codec, List<Integer> indexes) {
         this.oldTimeLine = timeLine
         this.codec = codec
-        this.indexes = indexes
-        //this.fixed = [[15], [25], [6]]
-        this.fixed = oldTimeLine.items.findResults { if (it.locked) [it.group, it.id] }.groupBy { it[0] }.values()
-                                .collect { it*.get(1) }
-        println this.fixed
-        println 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+        Map<Integer, Integer> idxs = indexes.indexed().collectEntries { k, v -> [v, k] }
+        int groups = indexes.count { it < 0 }
+        def fix = oldTimeLine.items.findResults { if (it.locked) [it.group, it.id] }.groupBy { it[0] }.values()
+        this.fixed = fix.collect { xs -> (xs.collect { idxs[it[1]] }) }
+        this.fixed = groups <= this.fixed.size() ? this.fixed : this.fixed + (this.fixed.size()..<groups).collect { [] }
+        //this.fixed = [[15], [25], [6]].collect { xs -> xs.collect { idxs[it] } }
+
         this.fixSet = fixed.flatten() as Set
-        //oldTimeLine.items.findResults { if (it.locked) [it.position, it.id] }.collectEntries()
         this.breakPoints = indexes.indexed().findResults { k, v -> if (v < 0) k } as SortedSet
         this.instanceSeq = ISeq.of(0..<indexes.size())
     }
@@ -52,9 +51,10 @@ class OldTaskRepair<G extends Gene<?, G>,
 
                 final Phenotype<G, C> mpt = pt.newInstance(mgt, generation)
                 population.set(idx, mpt)
-                best = best ? [best, pt].min { it.fitness } : pt
+                best = best ? [best, mpt].min { it.fitness } : mpt
             }
             this.oldTimeLine = codec.decode(best.genotype)
+            //assert
             return alterations.get()
         }
     }
@@ -64,11 +64,14 @@ class OldTaskRepair<G extends Gene<?, G>,
         List<Integer> rep = chromosome*.allele
 
         List<List<Integer>> aux = ListUtils.splitWhere(rep) { it in breakPoints }.indexed()
-                                           .collect { k, v -> fixed[k] + v.findAll { !(it in fixSet) }
-        }
+                                           .collect { k, v -> (fixed[k] + v.findAll { !(it in fixSet) }) }
         List<Integer> sol = breakPoints.indexed().inject(aux.first()) { acc, entry ->
             acc + [entry.value] + aux[entry.key + 1]
         }.unique()
+
+//        ListUtils.splitWhere(sol) {
+//            it in breakPoints
+//        }.indexed().each { k, v -> assert fixed[k] == v.take(fixed[k].size()) }
 
         alterations.addAndGet(fixSet.size())
         ISeq<EnumGene<Integer>> seq = ISeq.of(sol.collect { EnumGene.<Integer> of(it, instanceSeq) })

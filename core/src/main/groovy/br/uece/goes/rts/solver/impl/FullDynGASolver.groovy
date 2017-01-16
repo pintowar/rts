@@ -71,7 +71,7 @@ class FullDynGASolver implements Solver<TimeLine> {
 
         Engine.builder(func, codec)
               .minimizing()
-              .maximalPhenotypeAge(100)
+              .maximalPhenotypeAge(300)
               .offspringSelector(new RouletteWheelSelector<>())
               .offspringFraction(0.8)
               .populationSize(POPULATION_SIZE)

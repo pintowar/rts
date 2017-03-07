@@ -30,7 +30,7 @@ class InstanceParser implements InstanceDao {
 
     @Override
     List<Task> getInstanceTasks(String name) {
-        csvToMap("${name}_tasks.csv").collect {
+        csvToMap(splitFile("${name}.txt")[1]).collect {
             new Task(id: it['id'].toInteger(), content: it['content'], criticity: it['criticity'],
                     preced: it['preced'].toInteger(), skills: (1..10).collect { el -> it["skill${el}"].toInteger() })
         }
@@ -38,16 +38,19 @@ class InstanceParser implements InstanceDao {
 
     @Override
     List<Employee> getInstanceEmployees(String name) {
-        csvToMap("${name}_employees.csv").collect {
+        csvToMap(splitFile("${name}.txt")[0]).collect {
             new Employee(id: it['id'].toInteger(), content: it['content'],
                     skills: (1..10).collect { el -> it["skill${el}"].toInteger() })
         }
     }
 
-    private List<Map<String, String>> csvToMap(String file) {
-        List content = this.class.classLoader.getResourceAsStream(file).text.split('\n')*.split(',')
-//        List content = new ClassPathResource(file).inputStream.text.split('\n')*.split(',')
-        List head = content.first()
-        content.tail().collect { [head, it].transpose().collectEntries() }
+    private List<Map<String, String>> csvToMap(String content) {
+        def data = content.split('\n')*.split(',') as List
+        List head = data.first()
+        data.tail().collect { [head, it].transpose().collectEntries() }
+    }
+
+    private List<String> splitFile(String file) {
+        this.class.classLoader.getResourceAsStream(file).text.split(/=+/)*.trim()
     }
 }

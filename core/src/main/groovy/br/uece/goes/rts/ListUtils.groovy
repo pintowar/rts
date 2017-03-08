@@ -14,6 +14,12 @@ class ListUtils {
         aux
     }
 
+    static <T> List<T> shuffle(List<T> list, Random rnd) {
+        List<T> aux = list.clone() as List<T>
+        Collections.shuffle(aux, rnd)
+        aux
+    }
+
     static <T> Map<T, List<T>> groupWhere(List<T> list, T initial, Closure<Boolean> cond) {
         Map<T, List<T>> map = [:].withDefault { [] }
 

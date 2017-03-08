@@ -5,6 +5,7 @@ import br.uece.goes.rts.domain.Instance
 import br.uece.goes.rts.dto.Stats
 import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
+import br.uece.goes.rts.solver.impl.op.MixMutator
 import org.apache.commons.math3.stat.descriptive.DescriptiveStatistics
 import org.jenetics.*
 import org.jenetics.engine.Codec
@@ -75,8 +76,8 @@ class DynGASolver implements Solver<TimeLine> {
               .offspringFraction(0.8)
               .populationSize(POPULATION_SIZE)
               .alterers(
-                new SwapMutator<>(MUTATION_RATE),
-                new PartiallyMatchedCrossover<>(CROSSOVER_RATE))
+                new PartiallyMatchedCrossover<>(CROSSOVER_RATE),
+                new MixMutator<>(MUTATION_RATE))
               .build()
     }
 

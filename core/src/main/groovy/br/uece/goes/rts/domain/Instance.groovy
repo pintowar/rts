@@ -24,15 +24,15 @@ class Instance {
     List<Task> tasks
     List<Employee> employees
     int version
-    private final Map<Integer, Integer> preceds
+    private final Map<Integer, Integer> precedence
 
     Instance(List<Task> tasks, List<Employee> employees, int version) {
         this.tasks = tasks
         this.employees = employees
         this.version = version
 
-        this.preceds = Collections.unmodifiableMap(tasks.findAll { it.preced > 0 }.collectEntries {
-            [it.id, it.preced]
+        this.precedence = Collections.unmodifiableMap(tasks.findAll { it.precedes > 0 }.collectEntries {
+            [it.id, it.precedes]
         })
 
     }
@@ -86,11 +86,11 @@ class Instance {
                 }
             }
         }
-        int precedsPunishment = preceds.count { k, v -> itemsMap[k].end >= itemsMap[v].start }.intValue()
+        int precedesPunishment = precedence.count { k, v -> itemsMap[k].end >= itemsMap[v].start }.intValue()
         List<Group> groups = transformEmployees().values().collect { new Group(it.id, it.content, it.id) }
         int maxHours = (int) initialDate.until(maxTime, ChronoUnit.HOURS)
 
-        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedsPunishment, version, stats, true)
+        new TimeLine(initialDate, items, groups, maxHours, priorityPunishment, precedesPunishment, version, stats, true)
     }
 
     TimeLine toTimeLine(LocalDateTime initialDate, List<Integer> representation) {

@@ -32,7 +32,7 @@ class InstanceParser implements InstanceDao {
     List<Task> getInstanceTasks(String name) {
         csvToMap(splitFile("${name}.txt")[1]).collect {
             new Task(id: it['id'].toInteger(), content: it['content'], criticity: it['criticity'],
-                    preced: it['preced'].toInteger(), skills: (1..10).collect { el -> it["skill${el}"].toInteger() })
+                    precedes: it['precedes'].toInteger(), skills: (1..10).collect { el -> it["skill${el}"].toInteger() })
         }
     }
 

@@ -13,12 +13,12 @@ class Task {
     Integer id
     String content
     String criticity
-    Integer preced
+    Integer precedes
     List<Integer> skills
 
     @Memoized
     String getContent() {
-        preced < 0 ? content : "${content} (Task ${preced})"
+        precedes < 0 ? content : "${content} (Task ${precedes})"
     }
 
     @Memoized

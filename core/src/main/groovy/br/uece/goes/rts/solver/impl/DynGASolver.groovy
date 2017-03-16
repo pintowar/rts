@@ -41,7 +41,7 @@ class DynGASolver implements Solver<TimeLine> {
     @Override
     Observable<TimeLine> solve() {
         LocalDateTime initialDate = LocalDateTime.now()
-        Observable<Instance> instance = instanceDao.observeInstanceByName("initial")
+        Observable<Instance> instance = instanceDao.observeInstanceByName("i_25_25/i_25_25")
         AtomicReference<Population<EnumGene<Integer>, Double>> initialPop = new AtomicReference<>(Population.empty())
         instance.switchMap {
             solving(initialDate, it, initialPop.get())

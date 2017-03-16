@@ -46,13 +46,12 @@ class MixMutator<
      */
     @Override
     protected int mutate(final MSeq<G> genes, final double p) {
-        final Random random = RandomRegistry.getRandom();
-        if (random.nextDouble() <= p * 2) {
+        final Random random = RandomRegistry.getRandom()
+        if (random.nextDouble() <= 0.3) {
             inverseMutator.mutate(genes, p)
         } else {
             swapMutatorMutator.mutate(genes, p)
         }
-
     }
 
     @Override

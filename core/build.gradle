@@ -24,3 +24,30 @@ dependencies {
     runtime 'ch.qos.logback:logback-classic:1.1.7'
     testCompile 'org.spockframework:spock-core:1.1-groovy-2.4-rc-3'
 }
+
+//task(tasksDependencies) {
+//    def path = file('src/main/resources/')
+//    def docpath = file('src/docs/tasks/')
+//
+//    path.eachFile { f -> generateDepGraph(docpath, f) }
+//}
+//
+//def generateDepGraph(path, file) {
+//    def dot = new File(path, file.name.replace('.txt','.dot'))
+//    dot.text = dotGraph(file)
+//    def proc = "dot ${dot.absolutePath} -Tpng -o ${dot.absolutePath.replace('.dot','.png')}".execute()
+//    proc.waitFor()
+//    dot.delete()
+//}
+//
+//def dotGraph(file) {
+//    def tasks = file.text.split(/=+/).last().trim()
+//    def deps = tasks.split('\n').tail().collect { it.split(',')[0, 3] }
+//    .findAll { it[-1] != '-1' }
+//    .collect { "  " + it.collect { el -> "\"Task ${el.padLeft(3, '0')}\"" }.join(' -> ') }
+//    """
+//    |digraph G {
+//    |${deps.join('\n')}
+//    |}
+//    """.stripMargin().trim()
+//}

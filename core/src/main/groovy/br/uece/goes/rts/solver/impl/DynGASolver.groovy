@@ -34,27 +34,27 @@ class DynGASolver implements Solver<TimeLine> {
     final int POPULATION_SIZE = 500
     final double CROSSOVER_RATE = 0.8
     final double MUTATION_RATE = 0.05
-    final double SURVIVOR_RATE = 0.4
-    final int NUM_SURVIVOR = SURVIVOR_RATE * POPULATION_SIZE
-
 
     @Override
-    Observable<TimeLine> solve() {
+    Observable<TimeLine> solve(String instanceName, double survivorRate) {
+        assert survivorRate >= 0 && survivorRate <= 1
         LocalDateTime initialDate = LocalDateTime.now()
-        Observable<Instance> instance = instanceDao.observeInstanceByName("i_25_25/i_25_25")
+        Observable<Instance> instance = instanceDao.observeInstanceByName(instanceName)
         AtomicReference<Population<EnumGene<Integer>, Double>> initialPop = new AtomicReference<>(Population.empty())
         instance.switchMap {
-            solving(initialDate, it, initialPop.get())
+            solving(initialDate, it, initialPop.get(), survivorRate)
                     .doOnNext { el -> initialPop.set(el.second) }
         }.map { it.first }//.scan { a, b -> b.maxHours < a.maxHours ? b : a }
     }
 
     Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> solving(LocalDateTime period, Instance instance,
-                                                                                Population<EnumGene<Integer>, Double> pop) {
+                                                                                Population<EnumGene<Integer>, Double> pop,
+                                                                                double survivorRate) {
         Codec<TimeLine, EnumGene<Integer>> codec = createCodec(period, instance)
         int size = instance.indexes().size()
+        int numSurvivor = survivorRate * POPULATION_SIZE
         def engine = createEngine(codec, size)
-        gaSolver(codec, instance, engine, pop)
+        gaSolver(codec, instance, engine, pop, numSurvivor)
     }
 
     Codec<TimeLine, EnumGene<Integer>> createCodec(LocalDateTime period, Instance instance) {
@@ -64,7 +64,6 @@ class DynGASolver implements Solver<TimeLine> {
             instance.toTimeLine(period, gt.chromosome.collect { indexes[it.allele] })
         }
     }
-
 
     Engine<EnumGene<Integer>, Double> createEngine(Codec<TimeLine, EnumGene<Integer>> codec, int size) {
         Function<TimeLine, Double> func = { TimeLine val -> val.fitness }
@@ -84,7 +83,8 @@ class DynGASolver implements Solver<TimeLine> {
     Observable<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> gaSolver(Codec<TimeLine, EnumGene<Integer>> codec,
                                                                                  Instance instance,
                                                                                  Engine<EnumGene<Integer>, Double> engine,
-                                                                                 Population<EnumGene<Integer>, Double> pop) {
+                                                                                 Population<EnumGene<Integer>, Double> pop,
+                                                                                 int numSurvivor) {
         Observable.create { Subscriber<Tuple2<TimeLine, Population<EnumGene<Integer>, Double>>> sub ->
             AtomicBoolean running = new AtomicBoolean(true)
             final Predicate<EvolutionResult<EnumGene<Integer>, Double>> pred = { running.get() }
@@ -101,7 +101,7 @@ class DynGASolver implements Solver<TimeLine> {
             })
 
             if (!instance.isEmpty()) {
-                List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance.indexes().size())
+                List<Genotype<EnumGene<Integer>>> list = newGenotypeList(pop, instance.indexes().size(), numSurvivor)
 
                 engine.stream(list).limit(pred).parallel().forEach { result ->
                     TimeLine tl = codec.decode(result.bestPhenotype.genotype)
@@ -115,11 +115,11 @@ class DynGASolver implements Solver<TimeLine> {
         }.subscribeOn(Schedulers.newThread())
     }
 
-    List<Genotype<EnumGene<Integer>>> newGenotypeList(Population<EnumGene<Integer>, Double> pop, int instSize) {
+    List<Genotype<EnumGene<Integer>>> newGenotypeList(Population<EnumGene<Integer>, Double> pop, int instSize, int numSurvivor) {
         Comparator<Phenotype<EnumGene<Integer>, Double>> sort = { a, b -> a.fitness.compareTo(b.fitness) }
         pop.stream().sorted(sort)
            .map { adjustSolution(instSize, it.genotype) }
-           .limit(NUM_SURVIVOR).collect(Collectors.toList())
+           .limit(numSurvivor).collect(Collectors.toList())
     }
 
     Genotype<EnumGene<Integer>> adjustSolution(int instSize, Genotype<EnumGene<Integer>> genotype) {

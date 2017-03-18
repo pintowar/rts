@@ -29,9 +29,9 @@ class GASolver implements Solver<TimeLine> {
     InstanceDao instanceDao
 
     @Override
-    Observable<TimeLine> solve() {
+    Observable<TimeLine> solve(String instanceName, double survivorRate) {
         LocalDateTime initialDate = LocalDateTime.now()
-        def instance = instanceDao.observeInstanceByName("initial")
+        def instance = instanceDao.observeInstanceByName(instanceName)
         instance.switchMap { solving(initialDate, it) }
     }
 

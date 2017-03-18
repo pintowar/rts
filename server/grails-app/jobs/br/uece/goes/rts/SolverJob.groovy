@@ -29,7 +29,7 @@ class SolverJob {
         def topic = "/topic/solution"
         if (jobDao.isExecuting()) {
             solutionDao.clearSolutions()
-            solver.solve()
+            solver.solve("i_25_10/employee/i_25_10", 0.4)
             .throttleFirst(1, TimeUnit.SECONDS).takeWhile { jobDao.isExecuting() }
             .toBlocking()
             .subscribe({ result ->

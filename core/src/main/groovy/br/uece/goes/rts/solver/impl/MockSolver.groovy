@@ -18,9 +18,9 @@ class MockSolver implements Solver<TimeLine> {
     InstanceDao instanceDao
 
     @Override
-    Observable<TimeLine> solve() {
+    Observable<TimeLine> solve(String instanceName, double survivorRate) {
         LocalDateTime initialDate = LocalDateTime.now()
-        def instance = instanceDao.observeInstanceByName("initial")
+        def instance = instanceDao.observeInstanceByName(instanceName)
         def timer = Observable.interval(0, 1, TimeUnit.SECONDS)
         instance.switchMap { i ->
             timer.map { t -> i.toTimeLine(initialDate, representation(i)) }

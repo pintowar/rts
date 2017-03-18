@@ -27,7 +27,7 @@ class Main {
         def solver = createSolver()
         def format = '%03d'
         (1..100).forEach { int exec ->
-            solver.solve()
+            solver.solve("i_25_10/employee/i_25_10", 0.6)
                   .throttleFirst(1, TimeUnit.SECONDS)
                   .toBlocking()
                   .subscribe({ result -> log.info "Exec ${String.format(format, exec)}, Result: ${result.maxHours}" },

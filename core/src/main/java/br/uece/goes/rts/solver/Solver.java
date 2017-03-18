@@ -7,5 +7,5 @@ import rx.Observable;
  */
 public interface Solver<R> {
 
-    Observable<R> solve();
+    Observable<R> solve(String instanceName, double survivorRate);
 }

@@ -16,7 +16,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.codehaus.groovy:groovy:2.4.7'
+    compile 'org.codehaus.groovy:groovy:2.4.10'
     compile 'io.reactivex:rxjava:1.2.1'
     compile 'org.apache.commons:commons-math3:3.6.1'
     compile 'io.jenetics:jenetics:3.7.0'

@@ -6,6 +6,10 @@ import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
 import br.uece.goes.rts.solver.impl.DynGASolver
 import groovy.util.logging.Slf4j
+import org.simplejavamail.email.EmailBuilder
+import org.simplejavamail.mailer.Mailer
+import org.simplejavamail.mailer.config.TransportStrategy
+import org.slf4j.MDC
 
 import java.util.concurrent.TimeUnit
 
@@ -21,6 +25,31 @@ class Main {
 
     Solver<TimeLine> createSolver() {
         new DynGASolver(instanceDao: createInstanceDao())
+    }
+
+    void phase01() {
+        def solver = createSolver()
+        def format = '%02d'
+        def execs = 30
+        def params = [['i_25_10'], ['employee', 'task'], [30, 60, 90]].combinations()
+        params.each { String i, String var, double sur ->
+            String instanceid = [i, var, (int) sur].join('_')
+            MDC.put('instanceid', instanceid)
+            log.info(['id', 'version', 'seconds', 'fitness', 'maxHours', 'min', 'q1', 'median', 'q3', 'max',
+                      'mean', 'stdDev'].join(';'))
+            execs.times { int exec ->
+                String id = instanceid + "_${String.format(format, exec)}"
+                solver.solve([i, var, i].join('/'), sur / 100)
+                      .throttleFirst(1, TimeUnit.SECONDS)
+                      .map { res -> [id, res.version, res.secondsElapsed, res.fitness, res.maxHours,
+                                     res.stats.min, res.stats.q1, res.stats.median, res.stats.q3, res.stats.max,
+                                     String.format('%.2f', res.stats.mean), String.format('%.2f', res.stats.stdDev)] }
+                      .toBlocking()
+                      .subscribe({ log.info it.join(';') },
+                        { e -> log.error e.message; e.printStackTrace(System.err) },
+                        { log.warn "Fim exec ${id}!!" })
+            }
+        }
     }
 
     void batchSolver() {
@@ -39,6 +68,6 @@ class Main {
 
     static void main(String[] args) {
         def main = new Main()
-        main.batchSolver()
+        main.phase01()
     }
 }

@@ -27,11 +27,11 @@ class Main {
         new DynGASolver(instanceDao: createInstanceDao())
     }
 
-    void phase01() {
+    void multiexec(List<Integer> percents) {
         def solver = createSolver()
         def format = '%02d'
         def execs = 30
-        def params = [['i_25_10'], ['employee', 'task'], [30, 60, 90]].combinations()
+        def params = [['i_25_10'], ['employee', 'task'], percents].combinations()
         params.each { String i, String var, double sur ->
             String instanceid = [i, var, (int) sur].join('_')
             MDC.put('instanceid', instanceid)
@@ -52,6 +52,14 @@ class Main {
         }
     }
 
+    void phase01() {
+        multiexec([30, 60, 90])
+    }
+
+    void phase01b() {
+        multiexec([0, 100])
+    }
+
     void batchSolver() {
         def solver = createSolver()
         def format = '%03d'
@@ -68,6 +76,6 @@ class Main {
 
     static void main(String[] args) {
         def main = new Main()
-        main.phase01()
+        main.phase01b()
     }
 }

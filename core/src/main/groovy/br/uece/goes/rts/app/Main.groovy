@@ -6,9 +6,6 @@ import br.uece.goes.rts.dto.TimeLine
 import br.uece.goes.rts.solver.Solver
 import br.uece.goes.rts.solver.impl.DynGASolver
 import groovy.util.logging.Slf4j
-import org.simplejavamail.email.EmailBuilder
-import org.simplejavamail.mailer.Mailer
-import org.simplejavamail.mailer.config.TransportStrategy
 import org.slf4j.MDC
 
 import java.util.concurrent.TimeUnit

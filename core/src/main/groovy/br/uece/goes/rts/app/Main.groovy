@@ -57,6 +57,34 @@ class Main {
         multiexec([0, 100])
     }
 
+    void phase02() {
+        def solver = createSolver()
+        def format = '%02d'
+        def execs = 30
+        def params = [[25, 50, 100], [10, 25, 50], ['employee', 'task'], [30, 60, 90]].combinations()
+        params.each { int t, int dep, String var, double sur ->
+            String i = ['i', t, dep].join('_')
+            if ('i_25_10' != i) {
+                String instanceid = [i, var, (int) sur].join('_')
+                MDC.put('instanceid', instanceid)
+                log.info(['id', 'version', 'seconds', 'fitness', 'maxHours', 'min', 'q1', 'median', 'q3', 'max',
+                          'mean', 'stdDev'].join(';'))
+                execs.times { int exec ->
+                    String id = instanceid + "_${String.format(format, exec)}"
+                    solver.solve([i, var, i].join('/'), sur / 100)
+                      .throttleFirst(1, TimeUnit.SECONDS)
+                      .map { res -> [id, res.version, res.secondsElapsed, res.fitness, res.maxHours,
+                                     res.stats.min, res.stats.q1, res.stats.median, res.stats.q3, res.stats.max,
+                                     String.format('%.2f', res.stats.mean), String.format('%.2f', res.stats.stdDev)] }
+                      .toBlocking()
+                      .subscribe({ log.info it.join(';') },
+                        { e -> log.error e.message; e.printStackTrace(System.err) },
+                        { log.warn "Fim exec ${id}!!" })
+                }
+            }
+        }
+    }
+
     void batchSolver() {
         def solver = createSolver()
         def format = '%03d'
@@ -71,8 +99,17 @@ class Main {
 
     }
 
+    void assertInstances() {
+        [[25, 50, 100], [10, 25, 50], ['employee', 'task'], [0, 1, 2]].combinations { a, b, c, d ->
+            def inst = "i_${a}_${b}"
+            def insta = createInstanceDao().getInstanceByName("${inst}/${c}/${inst}-${d}")
+            assert insta.tasks.size() == a + (c == 'task' ? 1 : 0) * 5 * d
+            assert insta.employees.size() == 3 + (c == 'employee' ? 1 : 0) * d
+        }
+    }
+
     static void main(String[] args) {
         def main = new Main()
-        main.phase01b()
+        main.phase02()
     }
 }

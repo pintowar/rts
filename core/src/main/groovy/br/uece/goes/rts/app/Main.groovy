@@ -64,14 +64,14 @@ class Main {
         def params = [[25, 50, 100], [10, 25, 50], ['employee', 'task'], [30, 60, 90]].combinations()
         params.each { int t, int dep, String var, double sur ->
             String i = ['i', t, dep].join('_')
-            if ('i_25_10' != i) {
-                String instanceid = [i, var, (int) sur].join('_')
-                MDC.put('instanceid', instanceid)
-                log.info(['id', 'version', 'seconds', 'fitness', 'maxHours', 'min', 'q1', 'median', 'q3', 'max',
-                          'mean', 'stdDev'].join(';'))
-                execs.times { int exec ->
-                    String id = instanceid + "_${String.format(format, exec)}"
-                    solver.solve([i, var, i].join('/'), sur / 100)
+
+            String instanceid = [i, var, (int) sur].join('_')
+            MDC.put('instanceid', instanceid)
+            log.info(['id', 'version', 'seconds', 'fitness', 'maxHours', 'min', 'q1', 'median', 'q3', 'max',
+                      'mean', 'stdDev'].join(';'))
+            execs.times { int exec ->
+                String id = instanceid + "_${String.format(format, exec)}"
+                solver.solve([i, var, i].join('/'), sur / 100)
                       .throttleFirst(1, TimeUnit.SECONDS)
                       .map { res -> [id, res.version, res.secondsElapsed, res.fitness, res.maxHours,
                                      res.stats.min, res.stats.q1, res.stats.median, res.stats.q3, res.stats.max,
@@ -80,7 +80,6 @@ class Main {
                       .subscribe({ log.info it.join(';') },
                         { e -> log.error e.message; e.printStackTrace(System.err) },
                         { log.warn "Fim exec ${id}!!" })
-                }
             }
         }
     }

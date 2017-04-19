@@ -99,8 +99,8 @@ class Instance {
 
     @Memoized
     List<Integer> indexes() {
-        (1..(this.tasks.size())) + (1..<(this.employees.size())).collect { -it }
-        //ListUtils.intercale(1..(this.tasks.size()), (1..<(this.employees.size())).collect { -it })
+//        (1..(this.tasks.size())) + (1..<(this.employees.size())).collect { -it }
+        ListUtils.intercale(1..(this.tasks.size()), (1..<(this.employees.size())).collect { -it })
     }
 
     @Memoized

@@ -6,14 +6,7 @@ plugins {
     //id 'ru.vyarus.quality' version '1.2.0'
 }
 
-version "0.1"
-group "br.uece.goes.rts"
-
 mainClassName = "br.uece.goes.rts.app.Main"
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     compile 'org.codehaus.groovy:groovy:2.4.10'

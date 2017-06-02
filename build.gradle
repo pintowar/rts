@@ -1,3 +1,15 @@
+subprojects {
+    version "0.1"
+    group "br.uece.goes.rts"
+
+    apply plugin: 'idea'
+
+    repositories {
+        mavenLocal()
+        maven { url "https://repo.grails.org/grails/core" }
+        mavenCentral()
+    }
+}
 
 task mochaTest {
     dependsOn(['npmInstall', 'npm_run_test'])

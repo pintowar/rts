@@ -1,33 +1,33 @@
 plugins {
-    id "com.moowork.node" version "0.13"
+    id "com.moowork.node" version "1.0.1"
 }
 
-task bootRun(type: NpmTask, dependsOn: 'npmInstall') {
+node {
+    version = '7.5.0'
+    yarnVersion = '0.21.3'
+    download = true
+}
+
+task bootRun(type: YarnTask, dependsOn: 'yarn') {
     group = 'application'
     description = 'Run the client app'
     args = ['run', 'start']
 }
 
-task build(type: NpmTask) {
+task build(type: YarnTask, dependsOn: 'yarn') {
     group = 'build'
     description = 'Build the client bundle'
-    args = ['build']
+    args = ['run', 'build']
 }
 
-task test(type: NpmTask) {
+task test(type: YarnTask, dependsOn: 'yarn') {
     group = 'verification'
     description = 'Run the client tests'
-    args = ['test']
+    args = ['run', 'test']
 }
 
-task eject(type: NpmTask) {
+task eject(type: YarnTask, dependsOn: 'yarn') {
     group = 'other'
     description = 'Eject from the create-react-app scripts'
-    args = ['eject']
+    args = ['run', 'eject']
 }
-
-
-bootRun.dependsOn(['npmInstall'])
-build.dependsOn(['npmInstall'])
-test.dependsOn(['npmInstall'])
-eject.dependsOn(['npmInstall'])

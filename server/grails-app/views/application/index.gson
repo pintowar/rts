@@ -10,7 +10,7 @@ model {
 
 json {
 	message "Welcome to Grails!"
-    environment Environment.current.content
+    environment Environment.current.name
     appversion grailsApplication.metadata.getApplicationVersion()
     grailsversion GrailsUtil.grailsVersion
     appprofile grailsApplication.config.getProperty('grails.profile')
@@ -23,11 +23,11 @@ json {
         services: grailsApplication.getArtefactInfo(ServiceArtefactHandler.TYPE).classesByName.size()
     )
     controllers grailsApplication.getArtefacts(ControllerArtefactHandler.TYPE), { GrailsClass c ->
-        content c.fullName
+        name c.fullName
         logicalPropertyName c.logicalPropertyName
     }
     plugins pluginManager.allPlugins, { GrailsPlugin plugin ->
-    	content plugin.content
+    	name plugin.name
     	version plugin.version
     }
 }
